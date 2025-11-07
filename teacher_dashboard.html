@@ -616,7 +616,7 @@
             }
             try {
                 // const response = await fetch('http://localhost:3000/update-student-data', {
-                const response = await fetch('/api/teacher-add-student', {
+                const response = await fetch('/api/update-student-data', { // <-- CORRECT URL
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
