@@ -184,7 +184,8 @@
                 loginError.textContent = '';
                 
                 try {
-                    const response = await fetch('http://localhost:3000/login', {
+                    // const response = await fetch('http://localhost:3000/login', {
+                    const response = await fetch('/api/login', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ username, password })
@@ -237,7 +238,8 @@
                 userEmailForSignup = email; 
 
                 try {
-                    const response = await fetch('http://localhost:3000/send-verification', {
+                    // const response = await fetch('http://localhost:3000/send-verification', {
+                    const response = await fetch('/api/verify-code', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email, fullName, schoolId, userType, phoneNumber })
@@ -264,7 +266,8 @@
                     return;
                 }
                 try {
-                    const response = await fetch('http://localhost:3000/verify-code', {
+                    // const response = await fetch('http://localhost:3000/verify-code', {
+                    const response = await fetch('/api/send-verification', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email: userEmailForSignup, code })
@@ -296,7 +299,8 @@
                     return;
                 }
                 try {
-                    const response = await fetch('http://localhost:3000/create-user', {
+                    // const response = await fetch('http://localhost:3000/create-user', {
+                    const response = await fetch('/api/create-user', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email: userEmailForSignup, password })

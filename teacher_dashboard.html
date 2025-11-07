@@ -304,7 +304,8 @@
         // --- Function to load all data from the server ---
         async function loadDashboardData() {
             try {
-                const response = await fetch('http://localhost:3000/get-all-students');
+                // const response = await fetch('http://localhost:3000/get-all-students');
+                const response = await fetch('/api/get-all-students');
                 const data = await response.json();
 
                 if (data.success) {
@@ -481,7 +482,8 @@
                 password: document.getElementById('addPassword').value
             };
             try {
-                const response = await fetch('http://localhost:3000/teacher-add-student', {
+                // const response = await fetch('http://localhost:3000/teacher-add-student', {
+                const response = await fetch('/api/teacher-add-student', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(studentData)
@@ -613,7 +615,8 @@
                 }
             }
             try {
-                const response = await fetch('http://localhost:3000/update-student-data', {
+                // const response = await fetch('http://localhost:3000/update-student-data', {
+                const response = await fetch('/api/teacher-add-student', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
