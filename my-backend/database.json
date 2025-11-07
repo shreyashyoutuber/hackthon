@@ -1,0 +1,92 @@
+{
+  "admin@test.com": {
+    "password": "Admin@88",
+    "fullName": "Admin User",
+    "userType": "teacher",
+    "schoolId": "T-001",
+    "phoneNumber": "1234567890",
+    "interviewReport": ""
+  },
+  "2400030189@kluniversity.in": {
+    "password": "12345",
+    "fullName": "Rahul Sharma",
+    "userType": "student",
+    "schoolId": "2400030189",
+    "phoneNumber": "0987654321",
+    "grades": {
+      "math": {
+        "score": "88%",
+        "grade": "B+"
+      },
+      "science": {
+        "score": "92%",
+        "grade": "A"
+      },
+      "history": {
+        "score": "85%",
+        "grade": "B"
+      },
+      "english": {
+        "score": "78%",
+        "grade": "C+"
+      },
+      "programming": {
+        "score": "70%",
+        "grade": "C-"
+      },
+      "physics": {
+        "score": "65%",
+        "grade": "D+"
+      },
+      "game": {
+        "score": "90",
+        "grade": "A"
+      }
+    },
+    "interviewReport": "Needs to improve on core programming concepts."
+  },
+  "Shreyashmahagaon@gmail.com": {
+    "password": "Shreyash@88",
+    "fullName": "shreyash",
+    "schoolId": "2400030189",
+    "userType": "student",
+    "phoneNumber": "06360612006",
+    "grades": {
+      "5556": {
+        "score": "55",
+        "grade": "F"
+      },
+      "os": {
+        "score": "88",
+        "grade": "B"
+      },
+      "programming": {
+        "score": "85",
+        "grade": "p"
+      }
+    },
+    "interviewReport": "good\n\n"
+  },
+  "pruthvimahagaon@gmail.com": {
+    "password": "12345678",
+    "fullName": "pruthvi",
+    "schoolId": "200",
+    "userType": "student",
+    "phoneNumber": "6360612005",
+    "grades": {
+      "ios": {
+        "score": "88%",
+        "grade": "A+"
+      },
+      "c": {
+        "score": "90%",
+        "grade": "P"
+      },
+      "programming": {
+        "score": "90%",
+        "grade": "A"
+      }
+    },
+    "interviewReport": "good best done keep it up"
+  }
+}
