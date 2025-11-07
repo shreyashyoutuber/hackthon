@@ -536,7 +536,7 @@ app.post('/api/create-user', (req, res) => {
     };
 
     // ⚠️ Vercel cannot save files, so this is commented out
-t   // fs.writeFileSync(dbPath, JSON.stringify(mockUserDatabase, null, 2));
+  // fs.writeFileSync(dbPath, JSON.stringify(mockUserDatabase, null, 2));
 
     delete tempUserDatabase[email]; 
 
