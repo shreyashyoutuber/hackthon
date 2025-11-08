@@ -273,14 +273,6 @@
 
 
 
-
-
-
-
-
-
-
-
 // 1. Import the tools
 const express = require('express');
 const cors = require('cors');
@@ -293,7 +285,7 @@ const app = express();
 
 // --- CONFIGURATION ---
 const ADMIN_EMAIL = 'shreyashmahagaon@gmail.com'; 
-const WEBSITE_URL = 'https://eduwise-six.vercel.app'; // <-- FIX: Use your live URL
+const WEBSITE_URL = 'https://eduwise-six.vercel.app'; // <-- Use your live URL
 
 // 3. --- Load database from file ---
 const dbPath = path.join(__dirname, 'database.json');
@@ -310,7 +302,7 @@ const transporter = nodemailer.createTransport({
     secure: false,
     auth: {
         user: 'shreyashmahagaon@gmail.com',
-        // --- FIX 2: SECURITY ---
+        // --- FIX 1: SECURITY (Password from Vercel) ---
         pass: process.env.MAIL_PASSWORD 
     }
 });
@@ -318,7 +310,7 @@ const transporter = nodemailer.createTransport({
 // 5. Add the "middleware"
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '..')));
+app.use(express.static(path.join(__dirname, '..'))); // Serves HTML/CSS from root
 app.use((req, res, next) => {
     if (req.originalUrl.endsWith('.html')) {
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -331,7 +323,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'index.html'));
 });
 
-// --- UPDATED LOGIN ROUTE (With Approval Check) ---
+// --- UPDATED LOGIN ROUTE ---
 app.post('/api/login', (req, res) => {
     console.log('Login attempt received!');
     const { username, password } = req.body;
@@ -352,17 +344,8 @@ app.post('/api/my-profile', (req, res) => {
     console.log(`Profile request received for: ${req.body.email}`);
     const { email } = req.body;
     const user = mockUserDatabase[email];
-
     if (user) {
-        res.json({
-            success: true,
-            fullName: user.fullName,
-            email: email,
-            userType: user.userType,
-            schoolId: user.schoolId,
-            phoneNumber: user.phoneNumber,
-            grades: user.grades
-        });
+        res.json({ success: true, fullName: user.fullName, email: email, userType: user.userType, schoolId: user.schoolId, phoneNumber: user.phoneNumber, grades: user.grades });
     } else {
         res.json({ success: false, message: 'User not found.' });
     }
@@ -370,19 +353,12 @@ app.post('/api/my-profile', (req, res) => {
 
 // --- GET ALL STUDENTS ---
 app.get('/api/get-all-students', (req, res) => {
-    console.log('Request received for all students');
     const allUsers = mockUserDatabase;
     const studentList = [];
     for (const email in allUsers) {
         if (allUsers[email].userType === 'student') {
             const student = allUsers[email];
-            studentList.push({
-                id: student.schoolId, 
-                email: email, 
-                name: student.fullName,
-                grades: student.grades || {},
-                interviewReport: student.interviewReport || ''
-            });
+            studentList.push({ id: student.schoolId, email: email, name: student.fullName, grades: student.grades || {}, interviewReport: student.interviewReport || '' });
         }
     }
     res.json({ success: true, students: studentList });
@@ -395,7 +371,7 @@ app.post('/api/update-student-data', (req, res) => {
         mockUserDatabase[email].grades = newGrades;
         mockUserDatabase[email].interviewReport = newInterviewReport;
         // saveDatabase(); // <-- FIX 3: THIS WILL FAIL ON VERCEL
-        console.log("WARNING: Data updated in memory, but not saved to file (read-only file system).");
+        console.log("WARNING: Data updated in memory, but not saved to file (read-only file system).");
         res.json({ success: true, message: 'Student updated successfully!' });
     } else {
         res.json({ success: false, message: 'Student not found.' });
@@ -408,17 +384,9 @@ app.post('/api/teacher-add-student', (req, res) => {
     if (mockUserDatabase[email]) {
         return res.json({ success: false, message: 'This email is already registered.' });
     }
-    mockUserDatabase[email] = {
-        password: password, 
-        fullName: fullName,
-        schoolId: schoolId,
-        userType: "student", 
-        phoneNumber: phoneNumber,
-        grades: {}, 
-        interviewReport: "" 
-    };
+    mockUserDatabase[email] = { password: password, fullName: fullName, schoolId: schoolId, userType: "student", phoneNumber: phoneNumber, grades: {}, interviewReport: "" };
     // saveDatabase(); // <-- FIX 3: THIS WILL FAIL ON VERCEL
-    console.log("WARNING: Data updated in memory, but not saved to file (read-only file system).");
+    console.log("WARNING: Data updated in memory, but not saved to file (read-only file system).");
     res.json({ success: true, message: 'New student created successfully!' });
 });
 
@@ -426,8 +394,7 @@ app.post('/api/teacher-add-student', (req, res) => {
 // ⚠️ THIS FUNCTION WILL NOT WORK ON VERCEL'S READ-ONLY FILE SYSTEM
 function saveDatabase() {
     try {
-        console.log("Attempting to save database... (This will fail on Vercel)");
-        // fs.writeFileSync('database.json', JSON.stringify(mockUserDatabase, null, 2));
+        // fs.writeFileSync('database.json', JSON.stringify(mockUserDatabase, null, 2)); // <-- THIS LINE IS THE PROBLEM
         console.log('Database save skipped (read-only file system).');
     } catch (error) {
         console.error('Failed to save database:', error);
@@ -440,13 +407,14 @@ function saveDatabase() {
 
 // STEP 1: Send Verification
 app.post('/api/send-verification', async (req, res) => {
-    // ... (This code is fine, no changes needed) ...
     const { email, fullName, schoolId, userType, phoneNumber, skipEmail } = req.body;
     if (mockUserDatabase[email]) {
         return res.json({ success: false, message: 'This email is already registered.' });
-    }
+  _ }
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     tempUserDatabase[email] = { fullName, schoolId, userType, phoneNumber, code: verificationCode, verified: false };
+    console.log(`Temp user stored for ${email}. Code: ${verificationCode}`); // Log for debugging
+
     if (skipEmail) {
         tempUserDatabase[email].verified = true;
         res.json({ success: true, message: 'Skipping email.', code: verificationCode });
@@ -461,6 +429,7 @@ app.post('/api/send-verification', async (req, res) => {
             await transporter.sendMail(mailOptions);
             res.json({ success: true, message: 'Verification email sent.' });
         } catch (error) {
+            console.error("Error sending email:", error); // Log the actual error
             res.json({ success: false, message: 'Error sending verification email.' });
         }
     }
@@ -468,24 +437,26 @@ app.post('/api/send-verification', async (req, res) => {
 
 // STEP 2: Verify Code
 app.post('/api/verify-code', (req, res) => {
-    // ... (This code is fine, no changes needed) ...
     const { email, code } = req.body;
     const tempUser = tempUserDatabase[email];
+    console.log(`Verifying code for ${email}. Code entered: ${code}`); // Log for debugging
+    console.log("Current temp database:", tempUserDatabase); // Log for debugging
+
     if (!tempUser) return res.json({ success: false, message: 'Error. Try again.' });
+
     if ((code === 'INSTANT_VERIFY_BY_TEACHER' && tempUser.verified === true) || tempUser.code === code) {
         tempUserDatabase[email].verified = true;
         res.json({ success: true, message: 'Email verified!' });
     } else {
         res.json({ success: false, message: 'Invalid code.' });
-  s   }
+    }
 });
 
-// STEP 3: Create User (*** ADMIN APPROVAL LOGIC ***)
+// STEP 3: Create User
 app.post('/api/create-user', async (req, res) => {
     console.log('Create user attempt received!');
     const { email, password } = req.body;
     const tempUser = tempUserDatabase[email];
-
     if (!tempUser || !tempUser.verified) {
         return res.json({ success: false, message: 'Verification required.' });
     }
@@ -499,70 +470,81 @@ app.post('/api/create-user', async (req, res) => {
         phoneNumber: tempUser.phoneNumber,
         grades: {},
         interviewReport: "",
-        approved: isApproved 
+        approved: isApproved
     };
-    // saveDatabase(); // <-- FIX 3: THIS WILL FAIL
-    console.log("WARNING: Data updated in memory, but not saved to file (read-only file system).");
-
+    // saveDatabase(); // <-- FIX 3: This will fail on read-only deployments (e.g. Vercel)
+    console.log("WARNING: Data updated in memory, but not saved to file (read-only file system).");
 
     if (tempUser.userType === 'teacher') {
         console.log(`Sending approval request to admin for ${email}`);
-        
-        // --- FIX 4: BROKEN LINK ---
-        const approvalLink = `${WEBSITE_URL}/api/approve-teacher?email=${email}`; // Use live URL
+        const approvalLink = `${WEBSITE_URL}/api/approve-teacher?email=${encodeURIComponent(email)}`; // Use live URL and encode email
 
         const adminMailOptions = {
-            from: 'shreyashmahagaon@gmail.com',
+            from: ADMIN_EMAIL,
             to: ADMIN_EMAIL,
             subject: 'ACTION REQUIRED: New Teacher Approval Request',
-            html: `... (your email content is fine) ... <a href="${approvalLink}">APPROVE</a>`
+            html: `<h3>New Teacher Registration</h3>
+                   <p><strong>Name:</strong> ${tempUser.fullName}</p>
+                   <p><strong>Email:</strong> ${email}</p>
+                   <p><a href="${approvalLink}">APPROVE TEACHER</a></p>`
         };
-        await transporter.sendMail(adminMailOptions);
-        
+
+        try {
+            await transporter.sendMail(adminMailOptions);
+            console.log('Admin notified about teacher approval request.');
+        } catch (error) {
+            console.error('Failed to send admin notification:', error);
+        }
+
         delete tempUserDatabase[email];
-        res.json({ success: true, userType: 'teacher', message: 'Account created! Please wait for admin approval.' });
+        return res.json({ success: true, userType: 'teacher', message: 'Account created! Please wait for admin approval.' });
     } else {
         delete tempUserDatabase[email];
-        res.json({ success: true, userType: 'student', message: 'Account created successfully!' });
+        return res.json({ success: true, userType: 'student', message: 'Account created successfully!' });
     }
 });
 
 // *** NEW ROUTE: ADMIN APPROVAL CLICK ***
 app.get('/api/approve-teacher', async (req, res) => {
-    const emailToApprove = req.query.email;
+	const emailToApprove = req.query.email;
+	if (mockUserDatabase[emailToApprove]) {
+		// mark approved in memory (note: won't persist on read-only deployments)
+		mockUserDatabase[emailToApprove].approved = true;
+		// saveDatabase(); // <-- Not used on read-only deployments
+		console.log("WARNING: Data updated in memory, but not saved to file (read-only file system).");
 
-    if (mockUserDatabase[emailToApprove]) {
-        mockUserDatabase[emailToApprove].approved = true;
-        // saveDatabase(); // <-- FIX 3: THIS WILL FAIL
-        console.log("WARNING: Data updated in memory, but not saved to file (read-only file system).");
+		try {
+			await transporter.sendMail({
+				from: ADMIN_EMAIL,
+				to: emailToApprove,
+				subject: 'Your EDUWISE Teacher Account is Approved!',
+				html: `<h3>Welcome aboard!</h3>
+					   <p>Your account has been approved. You can now <a href="${WEBSITE_URL}/login.html">log in here</a>.</p>`
+			});
+		} catch (e) {
+			console.error("Could not send approval notification email:", e);
+		}
 
-        try {
-            await transporter.sendMail({
-                from: 'shreyashmahagaon@gmail.com',
-                to: emailToApprove,
-                subject: 'Your EDUWISE Teacher Account is Approved!',
-                // --- FIX 4: BROKEN LINK ---
-                html: `<h3>Welcome aboard!</h3><p>Your account has been approved. You can now <a href="${WEBSITE_URL}/login.html">log in here</a>.</p>`
-            });
-        } catch (e) {
-            console.error("Could not send approval notification email.");
-        }
-
-        res.send(`... (your success message is fine) ... <a href="${WEBSITE_URL}/login.html">Go to Login</a>`);
-    } else {
-        res.send('<h1>Error</h1><p>User not found.</p>');
-    }
+		res.send(`<div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+					<h1 style="color: #4CAF50;">Success!</h1>
+					<p>Teacher <strong>${emailToApprove}</strong> has been approved.</p>
+					<a href="${WEBSITE_URL}/login.html">Go to Login</a>
+				  </div>`);
+	} else {
+		res.send('<h1>Error</h1><p>User not found.</p>');
+	}
 });
 
 
-// --- FIX 1: VERCEL SERVER START ---
+// --- FIX 2: VERCEL DEPLOYMENT ---
 // This runs the server *only* when you are testing locally
 if (process.env.NODE_ENV !== 'production') {
+    const PORT = 3000;
     app.listen(PORT, () => {
         console.log(`\n--- SERVER IS RUNNING FOR LOCAL TESTING ---`);
         console.log(`--- http://localhost:${PORT} ---`);
     });
 }
 
-// Export the app for Vercel
+// 7. Export the app for Vercel
 module.exports = app;
