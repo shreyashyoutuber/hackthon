@@ -5,7 +5,8 @@
     "userType": "teacher",
     "schoolId": "T-001",
     "phoneNumber": "1234567890",
-    "interviewReport": ""
+    "interviewReport": "",
+    "approved": true
   },
   "2400030189@kluniversity.in": {
     "password": "12345",
