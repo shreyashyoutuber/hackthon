@@ -358,4 +358,44 @@ a:hover {
     .login-container {
         padding: 2rem 1rem;
     }
+    /* --- MOBILE LOGIN PAGE HEADER FIXES --- */
+@media screen and (max-width: 768px) {
+
+    /* 1. Force Header into a single row */
+    .header-content {
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center;
+        padding: 10px 20px;
+    }
+
+    /* 2. Logo: Hide the word "Eduwise", keep only the image */
+    .logo-text {
+        display: none;
+    }
+    .logo-img {
+        height: 32px; /* Adjust size to fit nicely */
+        margin-right: 0;
+    }
+
+    /* 3. Navigation: Hide "Reports" and "Dashboard" */
+    /* This hides the 2nd and 3rd items in the list */
+    .nav-item:nth-child(2), 
+    .nav-item:nth-child(3) {
+        display: none !important;
+    }
+
+    /* 4. Ensure the "Login" link stays visible and clean */
+    .nav-list {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        gap: 0;
+    }
+    
+    .nav-link {
+        font-size: 14px;
+        font-weight: 600;
+    }
+}
 }
