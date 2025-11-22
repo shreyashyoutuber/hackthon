@@ -428,55 +428,70 @@ a {
     }
 }
 
-/* --- MOBILE DESIGN FIXES (Overrides) --- */
+/* --- MOBILE DESIGN FIXES (Single Row Layout) --- */
 @media screen and (max-width: 768px) {
     
-    /* 1. Fix the Header Layout */
+    /* 1. Force everything into a single row */
     .header-content {
-        flex-direction: column; /* Stack items nicely */
+        flex-direction: row !important; /* Force horizontal layout */
+        flex-wrap: nowrap !important;   /* Don't let items wrap to next line */
+        justify-content: space-between;
         align-items: center;
-        padding: 15px;
-        gap: 15px;
+        padding: 10px 15px;
+        gap: 8px;
     }
 
-    /* 2. Fix the Navigation Links (Login, Reports, Dashboard) */
-    .nav-list {
-        display: flex;
-        flex-direction: row; /* Make them sit in a line, not a stack */
-        justify-content: center;
-        gap: 20px; /* Add space between words */
+    /* 2. Logo: Hide the word "Eduwise" to save space, keep the icon */
+    .logo-text {
+        display: none; 
+    }
+    .logo-img {
+        height: 32px; /* Slightly smaller logo */
+        margin-right: 0;
+    }
+
+    /* 3. Search Bar: Make it fit in the middle */
+    .search-form {
+        flex-grow: 1; /* Make search bar take up all available space */
+        width: auto;
+        margin: 0 5px;
+        padding: 4px 10px;
+        height: 36px;
+    }
+    .search-input {
         width: 100%;
-        margin: 0;
+        font-size: 13px;
         padding: 0;
     }
 
+    /* 4. Navigation: Hide Reports/Dashboard, Show ONLY Login */
+    .main-nav {
+        margin: 0; /* Remove default margins */
+    }
+    .nav-list {
+        display: flex;
+        gap: 0;
+        padding: 0;
+        margin: 0;
+    }
+    
+    /* Hide all menu items... */
     .nav-item {
-        margin-bottom: 0; /* Remove extra spacing */
+        display: none; 
+    }
+    /* ...Except the first one (Login) */
+    .nav-item:first-child {
+        display: block;
     }
 
     .nav-link {
-        font-size: 14px; /* Make text slightly smaller for phones */
-    }
-
-    /* 3. Fix the Search Bar */
-    .header-content input[type="text"], 
-    .header-content input[type="search"] {
-        width: 100%; /* Make search bar fill the width */
-        max-width: 300px;
-    }
-
-    /* 4. Fix the Hero Section */
-    .hero-section {
-        padding: 40px 20px;
-        text-align: center;
-    }
-
-    h1 {
-        font-size: 28px !important; /* Make the big title fit better */
-        line-height: 1.3;
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap; /* Don't let "Log In" break into two lines */
     }
     
-    p {
-        font-size: 16px !important;
+    /* Fix Hero text size for mobile */
+    .hero-title {
+        font-size: 24px;
     }
 }
