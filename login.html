@@ -10,6 +10,10 @@
 </head>
 <body>
 
+    <a href="index.html" class="logo-badge">
+        <img src="logo.jpg" alt="Eduwise Logo">
+        <span>Eduwise</span>
+    </a>
     <div class="container" id="container">
         <div class="form-container sign-in-container">
             <form id="loginForm">
@@ -37,6 +41,8 @@
                 <a href="forgot-password.html" class="forgot">Forgot your password?</a>
                 <p class="error-message" id="loginError"></p>
                 <button type="submit">Sign In</button>
+                
+                <p class="mobile-text">Don't have an account? <a href="#" id="mobileSignUpBtn">Sign Up</a></p>
             </form>
         </div>
 
@@ -72,6 +78,8 @@
                 </div>
                 <p class="error-message" id="signupErrorStep1"></p>
                 <button type="submit">Next</button>
+                
+                <p class="mobile-text">Already have an account? <a href="#" id="mobileSignInBtn">Sign In</a></p>
             </form>
 
             <form id="signupFormStep2" class="signup-step" style="display: none;">
@@ -123,14 +131,23 @@
         const container = document.getElementById('container');
         const signUpBtn = document.getElementById('signUpBtn');
         const signInBtn = document.getElementById('signInBtn');
+        const mobileSignUpBtn = document.getElementById('mobileSignUpBtn');
+        const mobileSignInBtn = document.getElementById('mobileSignInBtn');
 
-        signUpBtn.addEventListener('click', () => {
+        function activateSignUp(e) {
+            if(e) e.preventDefault();
             container.classList.add("right-panel-active");
-        });
+        }
 
-        signInBtn.addEventListener('click', () => {
+        function activateSignIn(e) {
+            if(e) e.preventDefault();
             container.classList.remove("right-panel-active");
-        });
+        }
+
+        if(signUpBtn) signUpBtn.addEventListener('click', activateSignUp);
+        if(signInBtn) signInBtn.addEventListener('click', activateSignIn);
+        if(mobileSignUpBtn) mobileSignUpBtn.addEventListener('click', activateSignUp);
+        if(mobileSignInBtn) mobileSignInBtn.addEventListener('click', activateSignIn);
 
         // --- YOUR EXISTING LOGIN/SIGNUP JS ---
         document.addEventListener('DOMContentLoaded', () => {
