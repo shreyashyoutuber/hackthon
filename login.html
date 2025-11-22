@@ -3,174 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - SPARS</title>
+    <title>Login - Eduwise</title>
     <link rel="stylesheet" href="login.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <header class="site-header">
-        <div class="header-content">
-            <div class="site-branding">
-                <a href="index.html" class="logo-link" aria-label="Go to homepage">
-                    <img src="logo.jpg" alt="Eduwise Logo" class="logo-img">
-                    <span class="logo-text">Eduwise</span>
-                </a>
-            </div>
-            <nav class="main-nav">
-                <ul class="nav-list">
-                    <li class="nav-item"><a href="/login.html" class="nav-link active">Login</a></li>
-                    <!-- <li class="nav-item"><a href="/reports.html" class="nav-link">Reports</a></li> -->
-                    <!-- <li class="nav-item"><a href="/dashboard.html" class="nav-link">Dashboard</a></li> -->
-                </ul>
-            </nav>
+    <div class="container" id="container">
+        <div class="form-container sign-in-container">
+            <form id="loginForm">
+                <h1>Sign In</h1>
+                <div class="social-container">
+                    <a href="#" class="social"><i class='bx bxl-google'></i></a>
+                    <a href="#" class="social"><i class='bx bxl-facebook'></i></a>
+                    <a href="#" class="social"><i class='bx bxl-linkedin'></i></a>
+                </div>
+                <span>or use your email account</span>
+                
+                <div class="user-type-options">
+                    <label><input type="radio" name="user-type" value="student" checked> Student</label>
+                    <label style="margin-left: 15px;"><input type="radio" name="user-type" value="teacher"> Teacher</label>
+                </div>
+
+                <div class="infield">
+                    <input type="text" id="username" placeholder="Email" required />
+                    <i class='bx bxs-envelope'></i>
+                </div>
+                <div class="infield">
+                    <input type="password" id="password" placeholder="Password" required />
+                    <i class='bx bxs-lock-alt'></i>
+                </div>
+                <a href="forgot-password.html" class="forgot">Forgot your password?</a>
+                <p class="error-message" id="loginError"></p>
+                <button type="submit">Sign In</button>
+            </form>
         </div>
-    </header>
 
-    <main class="login-page">
-        <section class="login-section">
-            <div class="login-container">
-                <div id="login-form-section">
-                    <h1 class="login-title">Log in to your account</h1>
-                    <p class="login-subtitle">Choose your account type to continue.</p>
-                    <form class="login-form" id="loginForm">
-                        <div class="user-type-options">
-                            <label class="radio-label">
-                                <input type="radio" name="user-type" value="student" required checked>
-                                Student
-                            </label>
-                            <label class="radio-label">
-                                <input type="radio" name="user-type" value="teacher" required>
-                                Teacher
-                            </label>
-                        </div>
-                        <div class="input-group">
-                            <label for="username" class="visually-hidden">Username</label>
-                            <input type="text" id="username" placeholder="Email" required maxlength="60">
-                            <span class="limit-message" id="username-limit"></span>
-                        </div>
-                        <div class="input-group">
-                            <label for="password" class="visually-hidden">Password</label>
-                            <input type="password" id="password" placeholder="Password" required maxlength="15">
-                            <span class="limit-message" id="password-limit"></span>
-                        </div>
-                        <button type="submit" class="login-btn call-to-action-btn">Log In</button>
-                        <a href="forgot-password.html" class="forgot-password">Forgot Password?</a>
-                        <p class="error-message" id="loginError"></p>
-                    </form>
-                    <p class="form-toggle-text">Don't have an account? <a href="#" id="show-signup">Sign up here</a></p>
+        <div class="form-container sign-up-container">
+            <form id="signupFormStep1" class="signup-step">
+                <h1>Create Account</h1>
+                <div class="social-container">
+                    <a href="#" class="social"><i class='bx bxl-google'></i></a>
+                    <a href="#" class="social"><i class='bx bxl-facebook'></i></a>
+                </div>
+                <span>or use your email for registration</span>
+                
+                <div class="user-type-options">
+                    <label><input type="radio" name="signup-user-type" value="student" checked> Student</label>
+                    <label style="margin-left: 15px;"><input type="radio" name="signup-user-type" value="teacher"> Teacher</label>
                 </div>
 
-                <div id="signup-form-section" style="display: none;">
-                    
-                    <div id="signup-step-1">
-                        <h1 class="login-title">Create a new account</h1>
-                        <p class="login-subtitle">Step 1: Enter your details.</p>
-                        <form class="login-form" id="signupFormStep1">
-                            <div class="user-type-options">
-                                <label class="radio-label">
-                                    <input type="radio" name="signup-user-type" value="student" required checked>
-                                    I am a Student
-                                </label>
-                                <label class="radio-label">
-                                    <input type="radio" name="signup-user-type" value="teacher" required>
-                                    I am a Teacher
-                                </label>
-                            </div>
-                            <div class="input-group">
-                                <label for="fullName" class="visually-hidden">Full Name</label>
-                                <input type="text" id="fullName" placeholder="Full Name" required maxlength="20">
-                            </div>
-                            <div class="input-group">
-                                <label for="schoolId" class="visually-hidden">Student/Teacher ID</label>
-                                <input type="text" id="schoolId" placeholder="Student / Teacher ID" required maxlength="15">
-                            </div>
-                            <div class="input-group">
-                                <label for="newUsername" class="visually-hidden">Email</label>
-                                <input type="email" id="newUsername" placeholder="Email" required maxlength="60">
-                            </div>
-                            <div class="input-group">
-                                <label for="phoneNumber" class="visually-hidden">Phone Number</label>
-                                <input type="tel" id="phoneNumber" placeholder="Phone Number" required maxlength="10">
-                            </div>
-                            <button type="submit" class="login-btn call-to-action-btn">Send Verification Code</button>
-                            <p class="error-message" id="signupErrorStep1"></p>
-                        </form>
-                    </div>
+                <div class="infield">
+                    <input type="text" id="fullName" placeholder="Full Name" required />
+                    <i class='bx bxs-user'></i>
+                </div>
+                <div class="infield">
+                    <input type="text" id="schoolId" placeholder="ID Number" required />
+                    <i class='bx bxs-id-card'></i>
+                </div>
+                <div class="infield">
+                    <input type="email" id="newUsername" placeholder="Email" required />
+                    <i class='bx bxs-envelope'></i>
+                </div>
+                <div class="infield">
+                    <input type="tel" id="phoneNumber" placeholder="Phone Num" required />
+                    <i class='bx bxs-phone'></i>
+                </div>
+                <p class="error-message" id="signupErrorStep1"></p>
+                <button type="submit">Next</button>
+            </form>
 
-                    <div id="signup-step-2" style="display: none;">
-                        <h1 class="login-title">Check your email</h1>
-                        <p class="login-subtitle">Step 2: Enter the 6-digit code we sent you.</p>
-                        <form class="login-form" id="signupFormStep2">
-                            <div class="input-group">
-                                <label for="verificationCode" class="visually-hidden">Verification Code</label>
-                                <input type="text" id="verificationCode" placeholder="6-Digit Code" required maxlength="6">
-                            </div>
-                            <button type="submit" class="login-btn call-to-action-btn">Verify Code</button>
-                            <p class="error-message" id="signupErrorStep2"></p>
-                        </form>
-                    </div>
+            <form id="signupFormStep2" class="signup-step" style="display: none;">
+                <h1>Verify Email</h1>
+                <span>Enter the 6-digit code sent to your email.</span>
+                <div class="infield">
+                    <input type="text" id="verificationCode" placeholder="6-Digit Code" maxlength="6" required />
+                    <i class='bx bxs-key'></i>
+                </div>
+                <p class="error-message" id="signupErrorStep2"></p>
+                <button type="submit">Verify</button>
+            </form>
 
-                    <div id="signup-step-3" style="display: none;">
-                        <h1 class="login-title">Email Verified!</h1>
-                        <p class="login-subtitle">Step 3: Set your password.</p>
-                        <form class="login-form" id="signupFormStep3">
-                            <div class="input-group">
-                                <label for="newPassword" class="visually-hidden">Password</label>
-                                <input type="password" id="newPassword" placeholder="Password" required maxlength="15">
-                            </div>
-                            <div class="input-group">
-                                <label for="confirmPassword" class="visually-hidden">Confirm Password</label>
-                                <input type="password" id="confirmPassword" placeholder="Confirm Password" required maxlength="15">
-                            </div>
-                            <button type="submit" class="login-btn call-to-action-btn">Finish Sign Up</button>
-                            <p class="error-message" id="signupErrorStep3"></p>
-                        </form>
-                    </div>
+            <form id="signupFormStep3" class="signup-step" style="display: none;">
+                <h1>Set Password</h1>
+                <span>Secure your account.</span>
+                <div class="infield">
+                    <input type="password" id="newPassword" placeholder="Password (Min 8 chars)" required />
+                    <i class='bx bxs-lock'></i>
+                </div>
+                <div class="infield">
+                    <input type="password" id="confirmPassword" placeholder="Confirm Password" required />
+                    <i class='bx bxs-lock-alt'></i>
+                </div>
+                <p class="error-message" id="signupErrorStep3"></p>
+                <button type="submit">Finish</button>
+            </form>
+             <div id="successMessage" style="display: none; text-align: center; padding: 20px; color: var(--primary-color);"></div>
+        </div>
 
-                    <div id="successMessage" class="success-message" style="display:none;">
-                        </div>
-                    <p class="form-toggle-text">Already have an account? <a href="#" id="show-login">Log in here</a></p>
+        <div class="overlay-container">
+            <div class="overlay">
+                <div class="overlay-panel overlay-left">
+                    <h1>Welcome Back!</h1>
+                    <p>To keep connected with us please login with your personal info</p>
+                    <button class="ghost" id="signInBtn">Sign In</button>
+                </div>
+                <div class="overlay-panel overlay-right">
+                    <h1>Hello, Friend!</h1>
+                    <p>Register with your personal details to use all of site features</p>
+                    <button class="ghost" id="signUpBtn">Sign Up</button>
                 </div>
             </div>
-        </section>
-    </main>
-
-    <footer class="site-footer">
-        <p>&copy; 2025 SPARS. All rights reserved.</p>
-    </footer>
+        </div>
+    </div>
 
     <script>
+        // --- SLIDING ANIMATION JS ---
+        const container = document.getElementById('container');
+        const signUpBtn = document.getElementById('signUpBtn');
+        const signInBtn = document.getElementById('signInBtn');
+
+        signUpBtn.addEventListener('click', () => {
+            container.classList.add("right-panel-active");
+        });
+
+        signInBtn.addEventListener('click', () => {
+            container.classList.remove("right-panel-active");
+        });
+
+        // --- YOUR EXISTING LOGIN/SIGNUP JS ---
         document.addEventListener('DOMContentLoaded', () => {
             let userEmailForSignup = '';
-
-            const loginFormSection = document.getElementById('login-form-section');
-            const signupFormSection = document.getElementById('signup-form-section');
-            const showSignupLink = document.getElementById('show-signup');
-            const showLoginLink = document.getElementById('show-login');
-            const step1 = document.getElementById('signup-step-1');
-            const step2 = document.getElementById('signup-step-2');
-            const step3 = document.getElementById('signup-step-3');
+            const step1 = document.getElementById('signupFormStep1');
+            const step2 = document.getElementById('signupFormStep2');
+            const step3 = document.getElementById('signupFormStep3');
             const successMessageDiv = document.getElementById('successMessage');
-
-            const transitionForms = (hideElement, showElement) => {
-                hideElement.style.opacity = '0';
-                setTimeout(() => {
-                    hideElement.style.display = 'none';
-                    showElement.style.display = 'block';
-                    setTimeout(() => { showElement.style.opacity = '1'; }, 50);
-                }, 600);
-            };
-            showSignupLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                transitionForms(loginFormSection, signupFormSection);
-            });
-            showLoginLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                transitionForms(signupFormSection, loginFormSection);
-            });
 
             // --- LOGIN FORM ---
             document.getElementById('loginForm').addEventListener('submit', async function(event) {
@@ -190,24 +158,11 @@
                     const data = await response.json();
 
                     if (data.success) {
-                        try {
-                            localStorage.setItem('userEmail', username);
-                            if (localStorage.getItem('userEmail') !== username) {
-                                throw new Error('Browser is blocking local storage.');
-                            }
-                            alert(data.message);
-                            
-                            const cacheBuster = '?v=' + new Date().getTime();
-                            
-                            if (userType === 'student') {
-                                window.location.href = 'student_dashboard.html' + cacheBuster;
-                            } else if (userType === 'teacher') {
-                                window.location.href = 'teacher_dashboard.html' + cacheBuster;
-                            }
-                        } catch (e) {
-                            console.error('LocalStorage Error:', e);
-                            alert('Login successful, but your browser is blocking site storage!\n\nPlease use a normal browser window (not Incognito) and check your security settings.');
-                        }
+                        localStorage.setItem('userEmail', username);
+                        alert(data.message);
+                        const cacheBuster = '?v=' + new Date().getTime();
+                        if (userType === 'student') window.location.href = 'student_dashboard.html' + cacheBuster;
+                        else if (userType === 'teacher') window.location.href = 'teacher_dashboard.html' + cacheBuster;
                     } else {
                         loginError.textContent = data.message;
                     }
@@ -216,8 +171,8 @@
                 }
             });
 
-            // --- 3-STEP SIGNUP JAVASCRIPT ---
-            document.getElementById('signupFormStep1').addEventListener('submit', async function(event) {
+            // --- STEP 1 ---
+            step1.addEventListener('submit', async function(event) {
                 event.preventDefault();
                 const userType = document.querySelector('input[name="signup-user-type"]:checked').value;
                 const fullName = document.getElementById('fullName').value.trim();
@@ -225,128 +180,62 @@
                 const email = document.getElementById('newUsername').value.trim();
                 const phoneNumber = document.getElementById('phoneNumber').value.trim();
                 const errorP = document.getElementById('signupErrorStep1');
-                errorP.textContent = '';
-
-                if (!fullName || !schoolId || !email || !phoneNumber) {
-                    errorP.textContent = 'All fields are required.';
-                    return;
-                }
                 userEmailForSignup = email; 
-
                 try {
                     const response = await fetch('/api/send-verification', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email, fullName, schoolId, userType, phoneNumber })
                     });
                     const data = await response.json();
-                    if (data.success) {
-                        step1.style.display = 'none';
-                        step2.style.display = 'block';
-                    } else {
-                        errorP.textContent = data.message;
-                    }
-                } catch (error) {
-                    errorP.textContent = 'Could not connect to server.';
-                }
+                    if (data.success) { step1.style.display = 'none'; step2.style.display = 'flex'; } 
+                    else { errorP.textContent = data.message; }
+                } catch (error) { errorP.textContent = 'Connection error.'; }
             });
 
-            document.getElementById('signupFormStep2').addEventListener('submit', async function(event) {
+            // --- STEP 2 ---
+            step2.addEventListener('submit', async function(event) {
                 event.preventDefault();
                 const code = document.getElementById('verificationCode').value.trim();
                 const errorP = document.getElementById('signupErrorStep2');
-                errorP.textContent = '';
-                if (!code || code.length !== 6) {
-                    errorP.textContent = 'Please enter a 6-digit code.';
-                    return;
-                }
                 try {
                     const response = await fetch('/api/verify-code', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email: userEmailForSignup, code })
                     });
                     const data = await response.json();
-                    if (data.success) {
-                        step2.style.display = 'none';
-                        step3.style.display = 'block';
-                    } else {
-                        errorP.textContent = data.message;
-                    }
-                } catch (error) {
-                    errorP.textContent = 'Could not connect to server.';
-                }
+                    if (data.success) { step2.style.display = 'none'; step3.style.display = 'flex'; } 
+                    else { errorP.textContent = data.message; }
+                } catch (error) { errorP.textContent = 'Connection error.'; }
             });
 
-            // *** THIS IS THE UPDATED STEP 3 ***
-            document.getElementById('signupFormStep3').addEventListener('submit', async function(event) {
+            // --- STEP 3 ---
+            step3.addEventListener('submit', async function(event) {
                 event.preventDefault();
                 const password = document.getElementById('newPassword').value;
                 const confirmPassword = document.getElementById('confirmPassword').value;
                 const errorP = document.getElementById('signupErrorStep3');
-                errorP.textContent = '';
-                if (password.length < 8) {
-                    errorP.textContent = 'Password must be at least 8 characters.';
-                    return;
-                }
-                if (password !== confirmPassword) {
-                    errorP.textContent = 'Passwords do not match.';
-                    return;
-                }
+                if (password !== confirmPassword) { errorP.textContent = 'Passwords do not match.'; return; }
                 try {
                     const response = await fetch('/api/create-user', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email: userEmailForSignup, password })
                     });
                     const data = await response.json();
                     if (data.success) {
                         step3.style.display = 'none';
                         successMessageDiv.style.display = 'block';
-                        successMessageDiv.style.opacity = '1';
-                        
-                        // *** NEW: DIFFERENT MESSAGES FOR STUDENT VS TEACHER ***
                         if (data.userType === 'teacher') {
-                             successMessageDiv.innerHTML = `
-                                <span class="success-icon">&#9203;</span>
-                                <p><strong>Account Created!</strong></p>
-                                <p>Your teacher account is pending admin approval.</p>
-                                <p>You will receive an email when you can log in.</p>
-                             `;
-                             // Don't auto-redirect, let them read the message
-                             // Add a delay and then reset the form
-                             setTimeout(() => {
-                                transitionForms(signupFormSection, loginFormSection);
-                                successMessageDiv.style.display = 'none';
-                                successMessageDiv.style.opacity = '0';
-                                step1.style.display = 'block';
-                                document.getElementById('signupFormStep1').reset();
-                                document.getElementById('signupFormStep2').reset();
-                                document.getElementById('signupFormStep3').reset();
-                            }, 8000); // 8 second delay
+                            successMessageDiv.innerHTML = `<h3>Account Pending</h3><p>Admin approval required.</p>`;
                         } else {
-                             // Student message (standard)
-                             successMessageDiv.innerHTML = `
-                                <span class="success-icon">&#10004;</span>
-                                <p>Registration successful! Redirecting to login...</p>
-                             `;
-                             // Auto-redirect students after 3 seconds
-                             setTimeout(() => {
-                                transitionForms(signupFormSection, loginFormSection);
+                            successMessageDiv.innerHTML = `<h3>Success!</h3><p>Please Sign In.</p>`;
+                            setTimeout(() => {
+                                container.classList.remove("right-panel-active");
+                                step1.style.display = 'flex';
                                 successMessageDiv.style.display = 'none';
-                                successMessageDiv.style.opacity = '0';
-                                step1.style.display = 'block';
-                                document.getElementById('signupFormStep1').reset();
-                                document.getElementById('signupFormStep2').reset();
-                                document.getElementById('signupFormStep3').reset();
                             }, 3000);
                         }
-                    } else {
-                        errorP.textContent = data.message;
-                    }
-                } catch (error) {
-                    errorP.textContent = 'Could not connect to server.';
-                }
+                    } else { errorP.textContent = data.message; }
+                } catch (error) { errorP.textContent = 'Connection error.'; }
             });
         });
     </script>
