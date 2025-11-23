@@ -23,7 +23,6 @@ export async function POST(req) {
       { $set: { email, fullName, schoolId, userType, phoneNumber, verificationCode, isVerified: false, createdAt: new Date() } },
       { upsert: true }
     );
-
     // Front-end expects success to advance to step 2
     return NextResponse.json({ success: true, message: "Verification code sent (Test code: 123456)." });
 
