@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Eduwise</title>
+    <link rel="stylesheet" href="login.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <a href="index.html" class="logo-badge">
+        <img src="logo.jpg" alt="Eduwise Logo">
+        <span>Eduwise</span>
+    </a>
+    <div class="container" id="container">
+        <div class="form-container sign-in-container">
+            <form id="loginForm">
+                <h1>Sign In</h1>
+                <div class="social-container">
+                    <a href="#" class="social"><i class='bx bxl-google'></i></a>
+                    <a href="#" class="social"><i class='bx bxl-facebook'></i></a>
+                    <a href="#" class="social"><i class='bx bxl-linkedin'></i></a>
+                </div>
+                <span>or use your email account</span>
+                
+                <div class="user-type-options">
+                    <label><input type="radio" name="user-type" value="student" checked> Student</label>
+                    <label style="margin-left: 15px;"><input type="radio" name="user-type" value="teacher"> Teacher</label>
+                </div>
+
+                <div class="infield">
+                    <input type="text" id="username" placeholder="Email" required />
+                    <i class='bx bxs-envelope'></i>
+                </div>
+                <div class="infield">
+                    <input type="password" id="password" placeholder="Password" required />
+                    <i class='bx bxs-lock-alt'></i>
+                </div>
+                <a href="forgot-password.html" class="forgot">Forgot your password?</a>
+                <p class="error-message" id="loginError"></p>
+                <button type="submit">Sign In</button>
+                
+                <p class="mobile-text">Don't have an account? <a href="#" id="mobileSignUpBtn">Sign Up</a></p>
+            </form>
+        </div>
+
+        <div class="form-container sign-up-container">
+            <form id="signupFormStep1" class="signup-step">
+                <h1>Create Account</h1>
+                <div class="social-container">
+                    <a href="#" class="social"><i class='bx bxl-google'></i></a>
+                    <a href="#" class="social"><i class='bx bxl-facebook'></i></a>
+                </div>
+                <span>or use your email for registration</span>
+                
+                <div class="user-type-options">
+                    <label><input type="radio" name="signup-user-type" value="student" checked> Student</label>
+                    <label style="margin-left: 15px;"><input type="radio" name="signup-user-type" value="teacher"> Teacher</label>
+                </div>
+
+                <div class="infield">
+                    <input type="text" id="fullName" placeholder="Full Name" required />
+                    <i class='bx bxs-user'></i>
+                </div>
+                <div class="infield">
+                    <input type="text" id="schoolId" placeholder="ID Number" required />
+                    <i class='bx bxs-id-card'></i>
+                </div>
+                <div class="infield">
+                    <input type="email" id="newUsername" placeholder="Email" required />
+                    <i class='bx bxs-envelope'></i>
+                </div>
+                <div class="infield">
+                    <input type="tel" id="phoneNumber" placeholder="Phone Num" required />
+                    <i class='bx bxs-phone'></i>
+                </div>
+                <p class="error-message" id="signupErrorStep1"></p>
+                <button type="submit">Next</button>
+                
+                <p class="mobile-text">Already have an account? <a href="#" id="mobileSignInBtn">Sign In</a></p>
+            </form>
+
+            <form id="signupFormStep2" class="signup-step" style="display: none;">
+                <h1>Verify Email</h1>
+                <span>Enter the 6-digit code sent to your email.</span>
+                <div class="infield">
+                    <input type="text" id="verificationCode" placeholder="6-Digit Code" maxlength="6" required />
+                    <i class='bx bxs-key'></i>
+                </div>
+                <p class="error-message" id="signupErrorStep2"></p>
+                <button type="submit">Verify</button>
+            </form>
+
+            <form id="signupFormStep3" class="signup-step" style="display: none;">
+                <h1>Set Password</h1>
+                <span>Secure your account.</span>
+                <div class="infield">
+                    <input type="password" id="newPassword" placeholder="Password (Min 8 chars)" required />
+                    <i class='bx bxs-lock'></i>
+                </div>
+                <div class="infield">
+                    <input type="password" id="confirmPassword" placeholder="Confirm Password" required />
+                    <i class='bx bxs-lock-alt'></i>
+                </div>
+                <p class="error-message" id="signupErrorStep3"></p>
+                <button type="submit">Finish</button>
+            </form>
+             <div id="successMessage" style="display: none; text-align: center; padding: 20px; color: var(--primary-color);"></div>
+        </div>
+
+        <div class="overlay-container">
+            <div class="overlay">
+                <div class="overlay-panel overlay-left">
+                    <h1>Welcome Back!</h1>
+                    <p>To keep connected with us please login with your personal info</p>
+                    <button class="ghost" id="signInBtn">Sign In</button>
+                </div>
+                <div class="overlay-panel overlay-right">
+                    <h1>Hello, Friend!</h1>
+                    <p>Register with your personal details to use all of site features</p>
+                    <button class="ghost" id="signUpBtn">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- SLIDING ANIMATION JS ---
+        const container = document.getElementById('container');
+        const signUpBtn = document.getElementById('signUpBtn');
+        const signInBtn = document.getElementById('signInBtn');
+        const mobileSignUpBtn = document.getElementById('mobileSignUpBtn');
+        const mobileSignInBtn = document.getElementById('mobileSignInBtn');
+
+        function activateSignUp(e) {
+            if(e) e.preventDefault();
+            container.classList.add("right-panel-active");
+        }
+
+        function activateSignIn(e) {
+            if(e) e.preventDefault();
+            container.classList.remove("right-panel-active");
+        }
+
+        if(signUpBtn) signUpBtn.addEventListener('click', activateSignUp);
+        if(signInBtn) signInBtn.addEventListener('click', activateSignIn);
+        if(mobileSignUpBtn) mobileSignUpBtn.addEventListener('click', activateSignUp);
+        if(mobileSignInBtn) mobileSignInBtn.addEventListener('click', activateSignIn);
+
+        // --- YOUR EXISTING LOGIN/SIGNUP JS ---
+        document.addEventListener('DOMContentLoaded', () => {
+            let userEmailForSignup = '';
+            const step1 = document.getElementById('signupFormStep1');
+            const step2 = document.getElementById('signupFormStep2');
+            const step3 = document.getElementById('signupFormStep3');
+            const successMessageDiv = document.getElementById('successMessage');
+
+            // --- LOGIN FORM ---
+            document.getElementById('loginForm').addEventListener('submit', async function(event) {
+                event.preventDefault();
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value;
+                const loginError = document.getElementById('loginError');
+                const userType = document.querySelector('input[name="user-type"]:checked').value;
+                loginError.textContent = '';
+                
+                try {
+                    const response = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        localStorage.setItem('userEmail', username);
+                        alert(data.message);
+                        const cacheBuster = '?v=' + new Date().getTime();
+                        if (userType === 'student') window.location.href = 'student_dashboard.html' + cacheBuster;
+                        else if (userType === 'teacher') window.location.href = 'teacher_dashboard.html' + cacheBuster;
+                    } else {
+                        loginError.textContent = data.message;
+                    }
+                } catch (error) {
+                    loginError.textContent = 'Could not connect to the server.';
+                }
+            });
+
+            // --- STEP 1 ---
+            step1.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                const userType = document.querySelector('input[name="signup-user-type"]:checked').value;
+                const fullName = document.getElementById('fullName').value.trim();
+                const schoolId = document.getElementById('schoolId').value.trim();
+                const email = document.getElementById('newUsername').value.trim();
+                const phoneNumber = document.getElementById('phoneNumber').value.trim();
+                const errorP = document.getElementById('signupErrorStep1');
+                userEmailForSignup = email; 
+                try {
+                    const response = await fetch('/api/send-verification', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, fullName, schoolId, userType, phoneNumber })
+                    });
+                    const data = await response.json();
+                    if (data.success) { step1.style.display = 'none'; step2.style.display = 'flex'; } 
+                    else { errorP.textContent = data.message; }
+                } catch (error) { errorP.textContent = 'Connection error.'; }
+            });
+
+            // --- STEP 2 ---
+            step2.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                const code = document.getElementById('verificationCode').value.trim();
+                const errorP = document.getElementById('signupErrorStep2');
+                try {
+                    const response = await fetch('/api/verify-code', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: userEmailForSignup, code })
+                    });
+                    const data = await response.json();
+                    if (data.success) { step2.style.display = 'none'; step3.style.display = 'flex'; } 
+                    else { errorP.textContent = data.message; }
+                } catch (error) { errorP.textContent = 'Connection error.'; }
+            });
+
+            // --- STEP 3 ---
+            step3.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                const password = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                const errorP = document.getElementById('signupErrorStep3');
+                if (password !== confirmPassword) { errorP.textContent = 'Passwords do not match.'; return; }
+                try {
+                    const response = await fetch('/api/create-user', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: userEmailForSignup, password })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        step3.style.display = 'none';
+                        successMessageDiv.style.display = 'block';
+                        if (data.userType === 'teacher') {
+                            successMessageDiv.innerHTML = `<h3>Account Pending</h3><p>Admin approval required.</p>`;
+                        } else {
+                            successMessageDiv.innerHTML = `<h3>Success!</h3><p>Please Sign In.</p>`;
+                            setTimeout(() => {
+                                container.classList.remove("right-panel-active");
+                                step1.style.display = 'flex';
+                                successMessageDiv.style.display = 'none';
+                            }, 3000);
+                        }
+                    } else { errorP.textContent = data.message; }
+                } catch (error) { errorP.textContent = 'Connection error.'; }
+            });
+        });
+    </script>
+</body>
+</html>

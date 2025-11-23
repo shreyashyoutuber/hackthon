@@ -1,0 +1,497 @@
+/* Import Google Fonts for a modern, clean look */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+/* --- General & Base Styles --- */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #4CAF50; /* Vibrant Green */
+    --secondary-color: #2196F3; /* Bright Blue */
+    --accent-color: #FFC107; /* Amber for highlights */
+    --text-color: #333; /* Dark Gray for main text */
+    --light-text-color: #666; /* Lighter Gray for subtitles */
+    --background-color: #f0f2f5; /* Light Gray */
+    --card-background: #ffffff; /* White */
+    --shadow-light: rgba(0, 0, 0, 0.08);
+    --shadow-heavy: rgba(0, 0, 0, 0.15);
+    --font-family: 'Poppins', sans-serif;
+    --border-color: #e0e0e0; 
+    --dark-grey-bg: #4a4a4a; /* New: for hero section background */
+    --hero-text-color: #ffffff; /* New: for hero section text */
+}
+
+body {
+    font-family: var(--font-family);
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    overflow-x: hidden; 
+}
+
+a {
+    text-decoration: none;
+    color: var(--primary-color);
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* --- Header & Navigation --- */
+
+.site-header {
+    background-color: var(--card-background);
+    box-shadow: 0 2px 8px var(--shadow-light);
+    padding: 1rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    flex-wrap: wrap; 
+    gap: 1rem;
+}
+
+.site-branding {
+    display: flex;
+    align-items: center;
+}
+
+.logo-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.logo-img {
+    height: 40px;
+    margin-right: 10px;
+}
+
+.logo-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.search-form {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 5px 15px;
+    background-color: #f9f9f9;
+    transition: all 0.3s ease;
+}
+
+.search-form:focus-within {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+}
+
+.search-input {
+    border: none;
+    background: transparent;
+    font-size: 1rem;
+    padding: 5px;
+    width: 200px;
+    outline: none;
+}
+
+.search-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--light-text-color);
+}
+
+.main-nav .nav-list {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 1.5rem;
+}
+
+.nav-link {
+    font-weight: 500;
+    color: var(--light-text-color);
+    transition: color 0.3s ease;
+    padding: 5px 0;
+    position: relative;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--primary-color);
+    transition: width 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--primary-color);
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+/* --- HERO SECTION --- */
+
+.hero-section {
+    background-color: var(--dark-grey-bg); /* Dark grey background */
+    color: var(--hero-text-color); /* White text for contrast */
+    padding: 4rem 2rem; /* Reduced padding for a tighter look */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 70vh; /* Ensure it takes up a good portion of the viewport height */
+}
+
+.hero-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4rem; /* Increased gap */
+    max-width: 1200px;
+    width: 100%;
+}
+
+.hero-text-content {
+    flex: 1; 
+    max-width: 50%; /* Make text take up roughly half the space */
+    text-align: left; 
+}
+
+.hero-title {
+    font-size: clamp(2.8rem, 5vw, 4rem); /* Slightly adjusted clamp values */
+    font-weight: 700;
+    margin-bottom: 1rem;
+    line-height: 1.2; /* Tighter line height for large text */
+}
+
+.hero-subtitle {
+    font-size: clamp(1.1rem, 2.5vw, 1.4rem); /* Slightly larger subtitle */
+    font-weight: 400;
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: 0;
+    margin-right: 0;
+    color: rgba(255, 255, 255, 0.8); /* Lighter white for subtitle */
+}
+
+.call-to-action-btn {
+    display: inline-block;
+    background-color: var(--primary-color);
+    color: var(--card-background);
+    font-weight: 600;
+    padding: 1rem 2.5rem;
+    border-radius: 50px;
+    box-shadow: 0 4px 10px var(--shadow-light);
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.call-to-action-btn:hover {
+    background-color: #45a049;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px var(--shadow-heavy);
+}
+
+.hero-image-wrapper {
+    flex: 1; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    max-width: 50%; /* Image takes up the other half */
+    position: relative; /* For potential absolute positioning later */
+    border-radius: 12px;
+}
+
+.hero-image {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    object-fit: cover; /* Ensure image covers the area without distortion */
+    max-height: 500px; /* Limit the maximum height of the image */
+}
+
+
+/* --- FEATURES SECTION --- */
+.features-section {
+    padding: 4rem 2rem;
+    background-color: var(--card-background); 
+}
+
+.features-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+}
+
+.section-subtitle {
+    font-size: 1.1rem;
+    color: var(--light-text-color);
+    margin-bottom: 3rem;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    text-align: left;
+}
+
+.feature-card {
+    background-color: #f9f9f9;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: var(--shadow-light);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-heavy);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+.feature-card h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.feature-card p {
+    font-size: 1rem;
+    color: var(--light-text-color);
+}
+
+/* --- CALL TO ACTION SECTION --- */
+.cta-section {
+    background-color: var(--secondary-color); 
+    color: var(--card-background);
+    padding: 4rem 2rem;
+    text-align: center;
+}
+
+.cta-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.cta-subtitle {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    opacity: 0.9;
+}
+
+.cta-section .call-to-action-btn {
+     background-color: var(--primary-color); 
+}
+ .cta-section .call-to-action-btn:hover {
+     background-color: #45a049;
+}
+
+
+/* --- Footer --- */
+
+.site-footer {
+    text-align: center;
+    padding: 1.5rem;
+    background-color: #1a1a1a;
+    color: #f0f0f0;
+    border-top: 1px solid #333;
+}
+
+/* --- Responsive Design --- */
+
+/* Tablet & Smaller Desktop */
+@media (max-width: 992px) {
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .main-nav {
+        margin-top: 1rem;
+    }
+
+    .nav-list {
+        justify-content: center;
+    }
+
+    .hero-container {
+        flex-direction: column; /* Stack content on smaller screens */
+        text-align: center;
+        gap: 2rem;
+    }
+    
+    .hero-text-content {
+        max-width: 100%; /* Text takes full width */
+        text-align: center;
+    }
+
+    .hero-subtitle {
+        margin-left: auto; /* Re-center subtitle */
+        margin-right: auto;
+    }
+    
+    .hero-image-wrapper {
+        max-width: 80%; /* Image takes up most width */
+    }
+}
+
+/* Mobile Base Styles */
+@media (max-width: 768px) { 
+    .search-form {
+        width: 100%;
+        margin-top: 1rem;
+    }
+
+    .search-input {
+        width: 100%;
+    }
+
+    .hero-section {
+        padding: 4rem 1rem; /* Reduced padding for smaller screens */
+        min-height: auto; /* Allow height to adjust */
+    }
+    
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .section-title {
+        font-size: 2rem;
+    }
+
+    .cta-title {
+        font-size: 2rem;
+    }
+}
+
+/* --- MOBILE DESIGN FIXES (Single Row Layout) --- */
+@media screen and (max-width: 768px) {
+    
+    /* 1. Force everything into a single row */
+    .header-content {
+        flex-direction: row !important; /* Force horizontal layout */
+        flex-wrap: nowrap !important;   /* Don't let items wrap to next line */
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+        gap: 8px;
+    }
+
+    /* 2. Logo: Hide the word "Eduwise" to save space, keep the icon */
+    .logo-text {
+        display: none; 
+    }
+    .logo-img {
+        height: 32px; /* Slightly smaller logo */
+        margin-right: 0;
+    }
+
+    /* 3. Search Bar: Make it fit in the middle */
+    .search-form {
+        flex-grow: 1; /* Make search bar take up all available space */
+        width: auto;
+        margin: 0 5px;
+        padding: 4px 10px;
+        height: 36px;
+    }
+    .search-input {
+        width: 100%;
+        font-size: 13px;
+        padding: 0;
+    }
+
+    /* 4. Navigation: Hide Reports/Dashboard, Show ONLY Login */
+    .main-nav {
+        margin: 0; /* Remove default margins */
+    }
+    .nav-list {
+        display: flex;
+        gap: 0;
+        padding: 0;
+        margin: 0;
+    }
+    
+    /* Hide all menu items... */
+    .nav-item {
+        display: none; 
+    }
+    /* ...Except the first one (Login) */
+    .nav-item:first-child {
+        display: block;
+    }
+
+    .nav-link {
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap; /* Don't let "Log In" break into two lines */
+    }
+    
+    /* Fix Hero text size for mobile */
+    .hero-title {
+        font-size: 24px;
+    }
+}
