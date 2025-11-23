@@ -448,19 +448,10 @@ app.post('/api/login', (req, res) => {
 		}
 	})();
 });
-app.post("/api/create-user", async (req, res) => {
-  const user = req.body;
-
-  const { data, error } = await supabase
-    .from("users")
-    .insert([user]);
-
-  if (error) {
-    return res.status(500).json({ success: false, error: error.message });
-  }
-
-  res.json({ success: true, data });
-});
+// NOTE: The signup flow below defines `/api/create-user` and performs
+// validation + sets `user_type`. The earlier naive endpoint that inserted
+// raw request bodies caused users to be created without `user_type`, which
+// allowed role checks to be bypassed. That unsafe endpoint was removed.
 
 
 // --- GET USER PROFILE ROUTE ---
