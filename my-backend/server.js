@@ -270,6 +270,8 @@
 // module.exports = app;
 
 
+// Load local .env for local development (Vercel will provide envs in production)
+require('dotenv').config({ path: __dirname + '/.env' });
 
 
 
@@ -287,6 +289,23 @@ const app = express();
 const ADMIN_EMAIL = 'shreyashmahagaon@gmail.com'; 
 const WEBSITE_URL = 'https://eduwise-six.vercel.app'; // <-- Use your live URL
 
+// ROLE_EXEMPT: comma-separated env var (server-only). Always include ADMIN_EMAIL
+// and a fallback 'shreyashmahagaon@gmail.com' so those accounts can access both portals.
+const ROLE_EXEMPT = (() => {
+	try {
+		const raw = (process.env.ROLE_EXEMPT || '');
+		const fromEnv = raw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+		const set = new Set(fromEnv);
+		if (ADMIN_EMAIL) set.add(ADMIN_EMAIL.toLowerCase());
+		// ensure these two accounts are always exempt from portal restrictions
+		set.add('shreyashmahagaon@gmail.com');
+		set.add('admin@test.com');
+		return Array.from(set);
+	} catch (e) {
+		return [ (ADMIN_EMAIL || '').toLowerCase(), 'shreyashmahagaon@gmail.com' ].filter(Boolean);
+	}
+})();
+
 // 3. --- Load database from file ---
 const dbPath = path.join(__dirname, 'database.json');
 let mockUserDatabase = JSON.parse(fs.readFileSync(dbPath));
@@ -294,6 +313,61 @@ console.log('Database loaded from file.');
 
 // This temporarily holds users during the signup process
 const tempUserDatabase = {};
+
+// --- Supabase client (server-side) ---
+const { createClient } = require('@supabase/supabase-js');
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+
+let supabase = null;
+if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+	supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, { auth: { persistSession: false } });
+	console.log('Supabase client initialized.');
+} else {
+	console.warn('Supabase env vars missing. Falling back to local JSON database.');
+}
+
+// Helper: get user by email (Supabase first, fallback to in-memory/file)
+async function getUserByEmail(email) {
+	if (!email) return null;
+	const lookup = email.toString().toLowerCase();
+	if (supabase) {
+		// query using lower-cased email for consistent matching
+		const { data, error } = await supabase.from('users').select('*').eq('email', lookup).limit(1);
+		if (error) {
+			console.error('Supabase error fetching user:', error.message || error);
+		}
+		if (data && data.length) return data[0];
+	}
+	// fallback to file-based mock (case-insensitive key match)
+	const foundKey = Object.keys(mockUserDatabase).find(k => k.toLowerCase() === lookup);
+	if (foundKey) return mockUserDatabase[foundKey];
+	return null;
+}
+
+async function upsertUser(record) {
+	if (supabase) {
+		const { data, error } = await supabase.from('users').upsert([record]);
+		if (error) {
+			console.error('Supabase upsert error:', error.message || error);
+			throw error;
+		}
+		return data;
+	}
+	// fallback: write to in-memory object
+	const email = (record.email || '').toString().toLowerCase();
+	mockUserDatabase[email] = mockUserDatabase[email] || {};
+	// map fields from snake_case to the in-memory structure
+	mockUserDatabase[email].password = record.password || mockUserDatabase[email].password;
+	mockUserDatabase[email].fullName = record.full_name || mockUserDatabase[email].fullName;
+	mockUserDatabase[email].userType = record.user_type || mockUserDatabase[email].userType;
+	mockUserDatabase[email].schoolId = record.school_id || mockUserDatabase[email].schoolId;
+	mockUserDatabase[email].phoneNumber = record.phone_number || mockUserDatabase[email].phoneNumber;
+	mockUserDatabase[email].grades = record.grades || mockUserDatabase[email].grades || {};
+	mockUserDatabase[email].interviewReport = record.interview_report || mockUserDatabase[email].interviewReport || '';
+	mockUserDatabase[email].approved = record.approved === true;
+	return mockUserDatabase[email];
+}
 
 // 4. Create the Email Transporter
 const transporter = nodemailer.createTransport({
@@ -325,69 +399,251 @@ app.get('/', (req, res) => {
 
 // --- UPDATED LOGIN ROUTE ---
 app.post('/api/login', (req, res) => {
-    console.log('Login attempt received!');
-    const { username, password } = req.body;
-    const user = mockUserDatabase[username];
+	(async () => {
+		console.log('Login attempt received!');
+		const { username, password } = req.body;
+		// The frontend should send which portal the user tried to log in from
+		// e.g. { userType: 'student' } or { userType: 'teacher' }
+		const requestedUserType = (req.body.userType || req.body.user_type || null);
+		try {
+			const user = await getUserByEmail(username);
+			if (user && user.password === password) {
+				// support multiple field namings
+				const storedUserType = (user.user_type || user.userType || user.usertype || null);
+				const approved = (typeof user.approved !== 'undefined') ? user.approved : false;
 
-    if (user && user.password === password) {
-        if (user.userType === 'teacher' && user.approved !== true) {
-             return res.json({ success: false, message: 'Your teacher account is pending admin approval. Please wait for confirmation.' });
-        }
-        res.json({ success: true, message: 'Login successful!' });
-    } else {
-        res.json({ success: false, message: 'Invalid username or password' });
-    }
+				// Role-exempt accounts (can access both portals)
+				const normalizedEmail = (username || '').toString().toLowerCase();
+
+				// If frontend specified a portal (student/teacher), enforce it for non-exempt users.
+				// Support storedUserType values like 'student', 'teacher', 'both', or comma-separated 'student,teacher'.
+				const requestedNorm = requestedUserType ? requestedUserType.toString().toLowerCase() : null;
+				let storedTypes = [];
+				if (storedUserType) {
+					storedTypes = storedUserType.toString().toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
+				}
+				// treat 'both' as both student and teacher
+				if (storedTypes.includes('both')) {
+					storedTypes = ['student', 'teacher'];
+				}
+
+				if (requestedNorm && storedTypes.length && !storedTypes.includes(requestedNorm)) {
+					if (!ROLE_EXEMPT.includes(normalizedEmail)) {
+						return res.json({ success: false, message: `This account is registered as '${storedUserType}'. Please use the ${storedUserType} login.` });
+					}
+				}
+
+				if (storedUserType === 'teacher' && approved !== true) {
+					return res.json({ success: false, message: 'Your teacher account is pending admin approval. Please wait for confirmation.' });
+				}
+
+				// Optionally return the user's type so frontend can validate/redirect safely
+				return res.json({ success: true, message: 'Login successful!', userType: storedUserType });
+			} else {
+				return res.json({ success: false, message: 'Invalid username or password' });
+			}
+		} catch (err) {
+			console.error('Login error:', err);
+			return res.json({ success: false, message: 'Internal Server Error' });
+		}
+	})();
 });
+app.post("/api/create-user", async (req, res) => {
+  const user = req.body;
+
+  const { data, error } = await supabase
+    .from("users")
+    .insert([user]);
+
+  if (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+
+  res.json({ success: true, data });
+});
+
 
 // --- GET USER PROFILE ROUTE ---
 app.post('/api/my-profile', (req, res) => {
-    console.log(`Profile request received for: ${req.body.email}`);
-    const { email } = req.body;
-    const user = mockUserDatabase[email];
-    if (user) {
-        res.json({ success: true, fullName: user.fullName, email: email, userType: user.userType, schoolId: user.schoolId, phoneNumber: user.phoneNumber, grades: user.grades });
-    } else {
-        res.json({ success: false, message: 'User not found.' });
-    }
+	(async () => {
+		console.log(`Profile request received for: ${req.body.email}`);
+		const { email } = req.body;
+		try {
+			const user = await getUserByEmail(email);
+			if (user) {
+				// map to expected response
+				res.json({
+					success: true,
+					fullName: user.full_name || user.fullName || 'Student',
+					email: email,
+					userType: user.user_type || user.userType,
+					schoolId: user.school_id || user.schoolId,
+					phoneNumber: user.phone_number || user.phoneNumber,
+					grades: user.grades || {}
+				});
+			} else {
+				res.json({ success: false, message: 'User not found.' });
+			}
+		} catch (err) {
+			console.error('Profile error:', err);
+			res.json({ success: false, message: 'Internal Server Error' });
+		}
+	})();
 });
 
 // --- GET ALL STUDENTS ---
 app.get('/api/get-all-students', (req, res) => {
-    const allUsers = mockUserDatabase;
-    const studentList = [];
-    for (const email in allUsers) {
-        if (allUsers[email].userType === 'student') {
-            const student = allUsers[email];
-            studentList.push({ id: student.schoolId, email: email, name: student.fullName, grades: student.grades || {}, interviewReport: student.interviewReport || '' });
-        }
-    }
-    res.json({ success: true, students: studentList });
+	(async () => {
+		try {
+			if (supabase) {
+				const { data, error } = await supabase.from('users').select('*').eq('user_type', 'student');
+				if (error) {
+					console.error('Supabase error fetching students:', error.message || error);
+					// continue to fallback
+				} else if (data && data.length) {
+					const studentList = (data || []).map(s => ({ id: s.school_id || s.schoolId, email: s.email, name: s.full_name || s.fullName, grades: s.grades || {}, interviewReport: s.interview_report || s.interviewReport || '' }));
+					console.log('Fallback studentList count:', studentList.length);
+					return res.json({ success: true, students: studentList });
+				}
+				// if supabase returned no rows, fall through to fallback below
+			} 
+			{
+				// fallback: read the JSON file directly to avoid any in-memory mutations
+				try {
+					const raw = fs.readFileSync(dbPath, 'utf8');
+					const allUsersFile = JSON.parse(raw);
+					const studentList = [];
+					for (const email in allUsersFile) {
+						const u = allUsersFile[email] || {};
+						const userType = u.user_type || u.userType || u.usertype || u.usertype;
+						if (userType === 'student') {
+							const id = u.school_id || u.schoolId || u.schoolid || null;
+							const name = u.full_name || u.fullName || u.fullname || '';
+							const grades = u.grades || {};
+							const interviewReport = u.interview_report || u.interviewReport || u.interviewreport || '';
+							studentList.push({ id, email, name, grades, interviewReport });
+						}
+					}
+					return res.json({ success: true, students: studentList });
+				} catch (err) {
+					console.error('Fallback read database.json failed:', err);
+					return res.json({ success: true, students: [] });
+				}
+			}
+		} catch (err) {
+			console.error('Error fetching students:', err);
+			res.json({ success: false, message: 'Internal Server Error' });
+		}
+	})();
+});
+
+// --- GET ALL USERS (generic) ---
+app.get('/api/users', (req, res) => {
+	(async () => {
+		try {
+			if (supabase) {
+				const { data, error } = await supabase.from('users').select('*');
+				if (error) {
+					console.error('Supabase error fetching users:', error.message || error);
+					return res.status(500).json({ success: false, message: 'Failed to fetch users' });
+				}
+				return res.json({ success: true, users: data });
+			} else {
+				// fallback to local mock database
+				const users = Object.keys(mockUserDatabase).map(email => {
+					const u = mockUserDatabase[email];
+					return Object.assign({ email }, u);
+				});
+				return res.json({ success: true, users });
+			}
+		} catch (err) {
+			console.error('Error fetching users:', err);
+			res.status(500).json({ success: false, message: 'Internal Server Error' });
+		}
+	})();
+});
+
+// Debug route: inspect mockUserDatabase key shapes and user type fields
+app.get('/api/debug-user-types', (req, res) => {
+	try {
+		const debug = Object.keys(mockUserDatabase).map(email => {
+			const u = mockUserDatabase[email] || {};
+			return {
+				email,
+				keys: Object.keys(u),
+				userType: u.userType || null,
+				usertype: u.usertype || null,
+				user_type: u.user_type || null
+			};
+		});
+		res.json({ success: true, debug });
+	} catch (err) {
+		res.status(500).json({ success: false, error: err.message });
+	}
 });
 
 // --- UPDATE STUDENT DATA ---
 app.post('/api/update-student-data', (req, res) => {
-    const { email, newGrades, newInterviewReport } = req.body;
-    if (mockUserDatabase[email]) {
-        mockUserDatabase[email].grades = newGrades;
-        mockUserDatabase[email].interviewReport = newInterviewReport;
-        // saveDatabase(); // <-- FIX 3: THIS WILL FAIL ON VERCEL
-        console.log("WARNING: Data updated in memory, but not saved to file (read-only file system).");
-        res.json({ success: true, message: 'Student updated successfully!' });
-    } else {
-        res.json({ success: false, message: 'Student not found.' });
-    }
+	(async () => {
+		const { email, newGrades, newInterviewReport } = req.body;
+		try {
+			if (supabase) {
+				const { data, error } = await supabase.from('users').update({ grades: newGrades, interview_report: newInterviewReport }).eq('email', email);
+				if (error) {
+					console.error('Supabase update error:', error.message || error);
+					return res.json({ success: false, message: 'Update failed' });
+				}
+				return res.json({ success: true, message: 'Student updated successfully!' });
+			} else {
+				if (mockUserDatabase[email]) {
+					mockUserDatabase[email].grades = newGrades;
+					mockUserDatabase[email].interviewReport = newInterviewReport;
+					console.log("WARNING: Data updated in memory, but not saved to file (read-only file system).");
+					return res.json({ success: true, message: 'Student updated successfully!' });
+				}
+				return res.json({ success: false, message: 'Student not found.' });
+			}
+		} catch (err) {
+			console.error('Update student error:', err);
+			res.json({ success: false, message: 'Internal Server Error' });
+		}
+	})();
 });
 
 // --- TEACHER ADD STUDENT ROUTE ---
 app.post('/api/teacher-add-student', (req, res) => {
-    const { email, fullName, schoolId, phoneNumber, password } = req.body;
-    if (mockUserDatabase[email]) {
-        return res.json({ success: false, message: 'This email is already registered.' });
-    }
-    mockUserDatabase[email] = { password: password, fullName: fullName, schoolId: schoolId, userType: "student", phoneNumber: phoneNumber, grades: {}, interviewReport: "" };
-    // saveDatabase(); // <-- FIX 3: THIS WILL FAIL ON VERCEL
-    console.log("WARNING: Data updated in memory, but not saved to file (read-only file system).");
-    res.json({ success: true, message: 'New student created successfully!' });
+	(async () => {
+		const { email, fullName, schoolId, phoneNumber, password } = req.body;
+		try {
+			if (supabase) {
+				const record = {
+					email,
+					password,
+					full_name: fullName,
+					user_type: 'student',
+					school_id: schoolId,
+					phone_number: phoneNumber,
+					grades: {},
+					interview_report: '',
+					approved: true
+				};
+				const { data, error } = await supabase.from('users').insert([record]);
+				if (error) {
+					console.error('Supabase insert error:', error.message || error);
+					return res.json({ success: false, message: 'Failed to create student.' });
+				}
+				return res.json({ success: true, message: 'New student created successfully!' });
+			} else {
+				if (mockUserDatabase[email]) return res.json({ success: false, message: 'This email is already registered.' });
+				mockUserDatabase[email] = { password: password, fullName: fullName, schoolId: schoolId, userType: "student", phoneNumber: phoneNumber, grades: {}, interviewReport: "" };
+				console.log("WARNING: Data updated in memory, but not saved to file (read-only file system).");
+				return res.json({ success: true, message: 'New student created successfully!' });
+			}
+		} catch (err) {
+			console.error('Teacher add student error:', err);
+			res.json({ success: false, message: 'Internal Server Error' });
+		}
+	})();
 });
 
 // --- HELPER: Save Database ---
@@ -415,7 +671,7 @@ app.post('/api/send-verification', async (req, res) => {
     tempUserDatabase[email] = { fullName, schoolId, userType, phoneNumber, code: verificationCode, verified: false };
     console.log(`Temp user stored for ${email}. Code: ${verificationCode}`); // Log for debugging
 
-    if (skipEmail) {
+	if (skipEmail) {
         tempUserDatabase[email].verified = true;
         res.json({ success: true, message: 'Skipping email.', code: verificationCode });
     } else {
@@ -425,13 +681,13 @@ app.post('/api/send-verification', async (req, res) => {
             subject: 'Verify Your EDUWISE Account',
             html: `Hi ${fullName},<br><br>Your verification code is: <h2>${verificationCode}</h2>`
         };
-        try {
-            await transporter.sendMail(mailOptions);
-            res.json({ success: true, message: 'Verification email sent.' });
-        } catch (error) {
-            console.error("Error sending email:", error); // Log the actual error
-            res.json({ success: false, message: 'Error sending verification email.' });
-        }
+		try {
+			await transporter.sendMail(mailOptions);
+			res.json({ success: true, message: 'Verification email sent.' });
+		} catch (error) {
+			console.error("Error sending email:", error); // Log the actual error
+			res.json({ success: false, message: 'Error sending verification email.' });
+		}
     }
 });
 
@@ -462,20 +718,33 @@ app.post('/api/create-user', async (req, res) => {
     }
 
     const isApproved = (tempUser.userType === 'student');
-    mockUserDatabase[email] = {
-        password: password,
-        fullName: tempUser.fullName,
-        schoolId: tempUser.schoolId,
-        userType: tempUser.userType,
-        phoneNumber: tempUser.phoneNumber,
-        grades: {},
-        interviewReport: "",
-        approved: isApproved
-    };
-    // saveDatabase(); // <-- FIX 3: This will fail on read-only deployments (e.g. Vercel)
-    console.log("WARNING: Data updated in memory, but not saved to file (read-only file system).");
+	const record = {
+		email,
+		password: password,
+		full_name: tempUser.fullName,
+		user_type: tempUser.userType,
+		school_id: tempUser.schoolId,
+		phone_number: tempUser.phoneNumber,
+		grades: {},
+		interview_report: "",
+		approved: isApproved
+	};
 
-    if (tempUser.userType === 'teacher') {
+	try {
+		if (supabase) {
+			await upsertUser(record);
+			console.log('Upserted user into Supabase:', email);
+		} else {
+			// fallback to in-memory
+			await upsertUser(record);
+			console.log("WARNING: Data updated in memory, but not saved to file (read-only file system).", email);
+		}
+	} catch (err) {
+		console.error('Create user error:', err);
+		return res.json({ success: false, message: 'Failed to create user.' });
+	}
+
+	if (tempUser.userType === 'teacher') {
         console.log(`Sending approval request to admin for ${email}`);
         const approvalLink = `${WEBSITE_URL}/api/approve-teacher?email=${encodeURIComponent(email)}`; // Use live URL and encode email
 
@@ -496,11 +765,11 @@ app.post('/api/create-user', async (req, res) => {
             console.error('Failed to send admin notification:', error);
         }
 
-        delete tempUserDatabase[email];
-        return res.json({ success: true, userType: 'teacher', message: 'Account created! Please wait for admin approval.' });
+		delete tempUserDatabase[email]; 
+		return res.json({ success: true, userType: 'teacher', message: 'Account created! Please wait for admin approval.' });
     } else {
-        delete tempUserDatabase[email];
-        return res.json({ success: true, userType: 'student', message: 'Account created successfully!' });
+		delete tempUserDatabase[email]; 
+		return res.json({ success: true, userType: 'student', message: 'Account created successfully!' });
     }
 });
 

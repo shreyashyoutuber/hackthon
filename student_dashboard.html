@@ -112,26 +112,50 @@
                 const serverResponse = await response.json();
 
                 if (serverResponse.success) {
+                    // prefer server fullName, but fall back to a locally stored pending name
+                    // Accept multiple server name fields (different casing/keys)
+                    let nameFromServer = serverResponse.fullName || serverResponse.full_name || serverResponse.name || serverResponse.fullname || '';
+                    // If server returned the generic placeholder 'Student' or empty, try localStorage
+                    const pendingName = (localStorage.getItem('pendingFullName') || '').trim();
+                    let finalName = nameFromServer && nameFromServer.toString().toLowerCase() !== 'student' ? nameFromServer : (pendingName || null);
+                    // If still missing, derive from email (part before @)
+                    if (!finalName && userEmail) {
+                        let derived = userEmail.split('@')[0].replace(/\.|_|-/g, ' ');
+                        // If derived value is all digits (like an ID), avoid showing that as a 'name'
+                        if (/^\d+$/.test(derived.trim())) {
+                            // prefer schoolId if available and not numeric-only name; otherwise fall back to generic 'Student'
+                            const possibleSchoolId = serverResponse.schoolId || serverResponse.school_id || null;
+                            finalName = possibleSchoolId ? `Student ${possibleSchoolId}` : 'Student';
+                        } else {
+                            finalName = derived.split(' ').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+                        }
+                    }
+
                     studentData = {
-                        name: serverResponse.fullName,
+                        name: finalName || 'Student',
                         grades: serverResponse.grades || {} 
                     };
-                    
+
+                    // clear pending name now that we've used it
+                    try { localStorage.removeItem('pendingFullName'); } catch (e) {}
+
                     document.getElementById('welcome-title').textContent = `Welcome, ${studentData.name}!`;
 
                     function updateRecentGrades() {
                         const gradesList = document.getElementById('recentGradesList');
                         gradesList.innerHTML = '';
-                        
-                        if (studentData.grades && Object.keys(studentData.grades).length > 0) {
-                            const recentSubjects = Object.keys(studentData.grades).slice(-3); 
+                        const hasGrades = studentData.grades && Object.keys(studentData.grades).length > 0;
+
+                        if (hasGrades) {
+                            const recentSubjects = Object.keys(studentData.grades).slice(-3);
                             recentSubjects.forEach(subject => {
                                 const li = document.createElement('li');
                                 li.innerHTML = `<strong>${subject.charAt(0).toUpperCase() + subject.slice(1)}:</strong> ${studentData.grades[subject].score} (${studentData.grades[subject].grade})`;
                                 gradesList.appendChild(li);
                             });
                         } else {
-                            gradesList.innerHTML = '<li>No grades found.</li>';
+                            // Friendly, personalized empty-state message
+                            gradesList.innerHTML = `<li>No grades found for <strong>${studentData.name}</strong>. It looks like your teacher hasn't added marks yet.</li>`;
                         }
                     }
                     updateRecentGrades();
@@ -162,10 +186,11 @@
                         const interviewSuggestionDiv = document.getElementById('interviewSuggestion');
                         const suggestions = [];
 
-                        if (!studentData.grades || Object.keys(studentData.grades).length === 0) {
-                             interviewSuggestionDiv.innerHTML = `<p class="card-text">No grades have been added yet. Ask your teacher to update your profile.</p>`;
-                             return;
-                        }
+                                if (!studentData.grades || Object.keys(studentData.grades).length === 0) {
+                                    // When there are no grades, show a clear message and do not surface any "random" interview report text
+                                    interviewSuggestionDiv.innerHTML = `<p class="card-text">No grades have been added for <strong>${studentData.name}</strong>. Your teacher has not uploaded marks yet.</p>`;
+                                    return;
+                                }
 
                         for (const subject in interviewSubjects) {
                             const grade = studentData.grades[subject];
@@ -207,7 +232,7 @@
                         else { overallGradeEl.textContent = 'F'; overallMessageEl.textContent = 'At risk.'; }
                     } else {
                         overallGradeEl.textContent = 'N/A';
-                        overallMessageEl.textContent = 'No grades found.';
+                        overallMessageEl.textContent = `No grades found for ${studentData.name}. Please ask your teacher to add marks.`;
                     }
 
                 } else {

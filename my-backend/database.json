@@ -2,7 +2,7 @@
   "admin@test.com": {
     "password": "Admin@88",
     "fullName": "Admin User",
-    "userType": "teacher",
+    "userType": "both",
     "schoolId": "T-001",
     "phoneNumber": "1234567890",
     "interviewReport": "",
@@ -50,7 +50,7 @@
     "password": "Shreyash@88",
     "fullName": "shreyash",
     "schoolId": "2400030189",
-    "userType": "student",
+    "userType": "both",
     "phoneNumber": "06360612006",
     "grades": {
       "5556": {

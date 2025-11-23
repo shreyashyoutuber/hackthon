@@ -170,7 +170,7 @@
                     const response = await fetch('/api/login', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username, password })
+                        body: JSON.stringify({ username, password, userType })
                     });
                     const data = await response.json();
 
@@ -199,6 +199,8 @@
                 const errorP = document.getElementById('signupErrorStep1');
                 userEmailForSignup = email; 
                 try {
+                    // store the full name temporarily so dashboards can show the name
+                    try { localStorage.setItem('pendingFullName', fullName); } catch(e) { /* ignore */ }
                     const response = await fetch('/api/send-verification', {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email, fullName, schoolId, userType, phoneNumber })
