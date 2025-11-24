@@ -1,6 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Student Report — Eduwise</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Light & Minimal report page styles (local to this file) */
+    :root{--bg:#f6f8fa;--card:#ffffff;--muted:#6b7280;--accent:#0ea5a4;--accent-weak:rgba(14,165,164,0.12);--radius:12px}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:#0f172a;background:var(--bg)}
+    .container{max-width:980px;margin:28px auto;padding:18px}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo-img{width:44px;height:44px;border-radius:8px;object-fit:cover}
+    .brand-title{font-weight:700;color:#0f172a}
+    .controls{display:flex;gap:10px}
+
+    .card{background:var(--card);border-radius:var(--radius);padding:16px;border:1px solid rgba(15,23,42,0.04);box-shadow:0 6px 18px rgba(2,6,23,0.04)}
+    .report-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .report-title{font-size:18px;font-weight:700}
+    .report-sub{color:var(--muted);font-size:13px}
+
+    /* Sparkline container: small height line graph */
+    .spark-wrap{display:flex;align-items:center;gap:14px}
+    .spark-canvas{width:280px;height:48px}
+    .spark-value{font-weight:700;font-size:20px;color:var(--accent)}
+
+    /* Summary & recs */
+    .summary{margin-top:12px;color:#0f172a}
+    .summary .muted{color:var(--muted)}
+    .recs{margin-top:12px}
+    .recs li{margin-bottom:8px;color:var(--muted)}
+
+    .action-plan{margin-top:14px}
+    .action-plan li{margin-bottom:8px;color:var(--muted)}
+
+    @media (max-width:700px){.spark-canvas{width:180px;height:42px}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <img src="logo.jpg" class="logo-img" alt="logo">
+        <div>
+          <div class="brand-title">Eduwise</div>
+          <div class="report-sub">Detailed performance — lightweight view</div>
+        </div>
+      </div>
+      <div class="controls">
+        <a href="student_dashboard.html" class="report-sub">Back</a>
+        <button id="printReport" class="card" style="border-radius:10px;padding:8px 12px;background:var(--accent);color:#042022;border:none;cursor:pointer">Print</button>
+      </div>
+    </header>
+
+    <main class="card">
+      <div class="report-head">
+        <div>
+          <div id="reportTitle" class="report-title">Performance Report</div>
+          <div id="reportSubtitle" class="report-sub">Personalised summary and next steps</div>
+        </div>
+        <div class="report-sub">Generated: <span id="reportGenerated">—</span></div>
+      </div>
+
+      <div class="spark-wrap">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:14px">
+            <div>
+              <div id="studentName" style="font-weight:700;color:#0f172a">Student</div>
+              <div class="report-sub" id="studentEmail">student@example.com</div>
+            </div>
+            <div style="text-align:right">
+              <div class="spark-value" id="avgValue">—</div>
+              <div class="report-sub">Average score</div>
+            </div>
+          </div>
+          <div style="margin-top:10px">
+            <canvas id="sparkline" class="spark-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary" id="summaryBox"></div>
+
+      <div class="recs">
+        <h4 style="margin:12px 0 8px">Top Recommendations</h4>
+        <ol id="recommendations"></ol>
+      </div>
+
+      <div class="action-plan">
+        <h4 style="margin:12px 0 8px">Action Plan</h4>
+        <ul id="actionPlan"></ul>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Lightweight sparkline chart rendering with Chart.js
+    async function fetchProfile(){
+      const email = localStorage.getItem('userEmail');
+      if(!email){ alert('Not logged in'); location.href='login.html'; return null }
+      try{
+        const r = await fetch('/api/my-profile',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({email})});
+        if(!r.ok) throw new Error('Server error');
+        const d = await r.json(); if(!d.success) throw new Error(d.message||'no profile'); return d;
+      }catch(e){ console.error(e); alert('Could not load profile'); return null }
+    }
+
+    function buildSmallSeries(grades){
+      const keys = Object.keys(grades||{});
+      // keep original order, map to numeric values
+      const vals = keys.map(k=> parseInt((grades[k]||{}).score)||0);
+      return {labels: keys.map(k=> k.charAt(0).toUpperCase()+k.slice(1)), values: vals};
+    }
+
+    function renderSparkline(labels, values){
+      const c = document.getElementById('sparkline');
+      const ctx = c.getContext('2d');
+      if(window._spark) window._spark.destroy();
+      c.height = 48;
+      window._spark = new Chart(ctx,{
+        type:'line',
+        data:{labels, datasets:[{data:values, borderColor: getComputedStyle(document.documentElement).getPropertyValue('--accent')||'#0ea5a4', backgroundColor:'rgba(14,165,164,0.06)', fill:true, tension:0.35, pointRadius:0}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}},elements:{line:{borderWidth:2}}}
+      });
+    }
+
+    function recommendFor(score){
+      const s = parseInt(score)||0; if(s<50) return ['Revise fundamentals','Practice 25 basic problems weekly','Get a tutor session'];
+      if(s<70) return ['Target weak subtopics','Do past-year problems','Weekly timed quizzes'];
+      if(s<85) return ['Mock tests','Peer review sessions','Apply topics to projects'];
+      return ['Maintain consistency','Teach peers','Attempt advanced problems'];
+    }
+
+    (async function init(){
+      const p = await fetchProfile(); if(!p) return;
+      document.getElementById('reportGenerated').textContent = new Date().toLocaleString();
+      const name = p.fullName||p.full_name||p.name||p.fullname||p.email||'';
+      document.getElementById('studentName').textContent = name;
+      document.getElementById('studentEmail').textContent = p.email || p.emailAddress || '';
+
+      const {labels, values} = buildSmallSeries(p.grades || {});
+      const avg = values.length? Math.round(values.reduce((a,b)=>a+b,0)/values.length) : 0;
+      document.getElementById('avgValue').textContent = values.length? (avg + '%') : 'N/A';
+
+      renderSparkline(labels, values);
+
+      // summary
+      const summaryBox = document.getElementById('summaryBox');
+      summaryBox.innerHTML = values.length? `<p><strong>Average:</strong> ${avg}%</p><p class='muted'>Subjects: ${labels.length}</p>` : '<p class="muted">No grades available.</p>';
+
+      // recommendations: pick top 3 weakest subjects
+      const recEl = document.getElementById('recommendations'); recEl.innerHTML='';
+      const keys = Object.keys(p.grades||{});
+      keys.sort((a,b)=> (parseInt((p.grades[a]||{}).score||0)) - (parseInt((p.grades[b]||{}).score||0)));
+      const weakest = keys.slice(0,3);
+      weakest.forEach(k=>{
+        const score = (p.grades[k]||{}).score||'0';
+        const human = k.charAt(0).toUpperCase()+k.slice(1);
+        const r = recommendFor(score);
+        const li = document.createElement('li'); li.textContent = `${human} — ${score}%: ${r[0]}`; recEl.appendChild(li);
+      });
+
+      // action plan: simple bullets from recs
+      const planEl = document.getElementById('actionPlan'); planEl.innerHTML='';
+      weakest.forEach(k=>{ const s = (p.grades[k]||{}).score||'0'; const r = recommendFor(s); const li = document.createElement('li'); li.textContent = `For ${k}: ${r[0]}`; planEl.appendChild(li); });
+
+      document.getElementById('printReport').addEventListener('click',(e)=>{ e.preventDefault(); window.print(); });
+    })();
+  </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Detailed Student Report - Eduwise</title>
