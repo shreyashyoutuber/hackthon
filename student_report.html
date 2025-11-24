@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Student Report - Eduwise</title>
+  <title>Student Report — Eduwise</title>
   <style>
     /* Professional detailed report (no graphs) */
     :root{--bg:#f7fafc;--card:#ffffff;--muted:#6b7280;--accent:#0f766e;--accent-weak:rgba(15,118,110,0.08);--radius:12px}
@@ -50,7 +50,7 @@
         <img src="logo.jpg" class="logo-img" alt="logo">
         <div>
           <div class="brand-title">Eduwise</div>
-        <div class="report-sub">Detailed performance - lightweight view</div>
+          <div class="report-sub">Detailed performance — lightweight view</div>
         </div>
       </div>
       <div class="controls">
@@ -65,19 +65,19 @@
           <div id="reportTitle" class="report-title">Performance Report</div>
           <div id="reportSubtitle" class="report-sub">Personalised summary and next steps</div>
         </div>
-        <div class="report-sub">Generated: <span id="reportGenerated">-</span></div>
+        <div class="report-sub">Generated: <span id="reportGenerated">—</span></div>
       </div>
 
       <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
         <div>
           <div id="studentName" style="font-weight:700;color:#071726;font-size:16px">Student</div>
           <div class="report-sub" id="studentEmail">student@example.com</div>
-          <div class="muted" id="studentMeta" style="margin-top:6px;font-size:13px">ID: - • Class: -</div>
+          <div class="muted" id="studentMeta" style="margin-top:6px;font-size:13px">ID: — • Class: —</div>
         </div>
         <div class="summary">
           <div class="box">
             <div class="muted">Average</div>
-            <div class="avg" id="avgValue">-</div>
+            <div class="avg" id="avgValue">—</div>
           </div>
           <div style="min-width:180px">
             <div class="muted">Overall comments</div>
@@ -114,25 +114,15 @@
   </div>
 
   <script>
-		async function fetchProfile(){
-			const email = localStorage.getItem('userEmail');
-			if(!email){ alert('Not logged in'); location.href='login.html'; return null }
-			try{
-				const r = await fetch('/api/my-profile',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({email})});
-				if(!r.ok) throw new Error('Server error');
-				const d = await r.json();
-				// Support either: { success: true, data: { ...profile } } OR direct profile object
-				if (d && typeof d === 'object'){
-					if (d.success && d.data) return d.data;
-					if (d.profile) return d.profile;
-					// if server sent wrapper with success only and profile at top, try common keys
-					if (d.success && (d.fullName || d.grades)) return d;
-					// otherwise if it's direct profile
-					if (d.fullName || d.email || d.grades) return d;
-				}
-				throw new Error('no profile');
-			}catch(e){ console.error(e); alert('Could not load profile'); return null }
-		}
+    async function fetchProfile(){
+      const email = localStorage.getItem('userEmail');
+      if(!email){ alert('Not logged in'); location.href='login.html'; return null }
+      try{
+        const r = await fetch('/api/my-profile',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({email})});
+        if(!r.ok) throw new Error('Server error');
+        const d = await r.json(); if(!d.success) throw new Error(d.message||'no profile'); return d;
+      }catch(e){ console.error(e); alert('Could not load profile'); return null }
+    }
 
     function recommendFor(score){
       const s = parseInt(score)||0;
@@ -156,8 +146,8 @@
 
     function makeWeeklyPlan(weakSubjects){
       const plan = [];
-			if (weakSubjects.length === 0) {
-				plan.push('Keep doing weekly mock tests (1-2 per week)');
+      if (weakSubjects.length === 0) {
+        plan.push('Keep doing weekly mock tests (1–2 per week)');
         plan.push('Maintain study logs and peer discussions');
         return plan;
       }
@@ -165,7 +155,7 @@
       const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
       for (let i=0;i<7;i++){
         const subj = weakSubjects[i % weakSubjects.length];
-				plan.push(`${days[i]}: 45-60 min focused practice on ${subj}`);
+        plan.push(`${days[i]}: 45–60 min focused practice on ${subj}`);
       }
       plan.push('Weekly mock test on Sunday (timed)');
       return plan;
@@ -225,11 +215,11 @@
       plan.forEach(item => { const li = document.createElement('li'); li.textContent = item; planEl.appendChild(li); });
 
       const resourceEl = document.getElementById('resourceList'); resourceEl.innerHTML = '';
-			const resources = [
-				{title:'Khan Academy - fundamentals', url:'https://www.khanacademy.org'},
-				{title:'GeeksforGeeks - practice problems', url:'https://www.geeksforgeeks.org'},
-				{title:'LeetCode - problem solving', url:'https://leetcode.com'}
-			];
+      const resources = [
+        {title:'Khan Academy — fundamentals', url:'https://www.khanacademy.org'},
+        {title:'GeeksforGeeks — practice problems', url:'https://www.geeksforgeeks.org'},
+        {title:'LeetCode — problem solving', url:'https://leetcode.com'}
+      ];
       resources.forEach(r=>{ const li=document.createElement('li'); li.innerHTML = `<a href="${r.url}" target="_blank">${r.title}</a>`; resourceEl.appendChild(li); });
 
       // action plan bullets
@@ -241,12 +231,7 @@
     })();
 
     function computeLetter(score){ if (score>=90) return 'A+'; if(score>=80) return 'A'; if(score>=70) return 'B'; if(score>=60) return 'C'; return 'D'; }
-		function capitalize(s){
-			if (s === null || s === undefined) return '';
-			s = String(s);
-			if (s.length === 0) return '';
-			return s.charAt(0).toUpperCase()+s.slice(1);
-		}
+    function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
     function escapeHtml(str){ return String(str).replace(/[&<>"]/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]); }); }
   </script>
 </body>
