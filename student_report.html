@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Student Report — Eduwise</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     /* Light & Minimal report page styles (local to this file) */
     :root{--bg:#f6f8fa;--card:#ffffff;--muted:#6b7280;--accent:#0ea5a4;--accent-weak:rgba(14,165,164,0.12);--radius:12px}
@@ -21,9 +20,7 @@
     .report-title{font-size:18px;font-weight:700}
     .report-sub{color:var(--muted);font-size:13px}
 
-    /* Sparkline container: small height line graph */
     .spark-wrap{display:flex;align-items:center;gap:14px}
-    .spark-canvas{width:280px;height:48px}
     .spark-value{font-weight:700;font-size:20px;color:var(--accent)}
 
     /* Summary & recs */
@@ -34,8 +31,6 @@
 
     .action-plan{margin-top:14px}
     .action-plan li{margin-bottom:8px;color:var(--muted)}
-
-    @media (max-width:700px){.spark-canvas{width:180px;height:42px}}
   </style>
 </head>
 <body>
@@ -75,9 +70,6 @@
               <div class="report-sub">Average score</div>
             </div>
           </div>
-          <div style="margin-top:10px">
-            <canvas id="sparkline" class="spark-canvas"></canvas>
-          </div>
         </div>
       </div>
 
@@ -96,7 +88,6 @@
   </div>
 
   <script>
-    // Lightweight sparkline chart rendering with Chart.js
     async function fetchProfile(){
       const email = localStorage.getItem('userEmail');
       if(!email){ alert('Not logged in'); location.href='login.html'; return null }
@@ -105,25 +96,6 @@
         if(!r.ok) throw new Error('Server error');
         const d = await r.json(); if(!d.success) throw new Error(d.message||'no profile'); return d;
       }catch(e){ console.error(e); alert('Could not load profile'); return null }
-    }
-
-    function buildSmallSeries(grades){
-      const keys = Object.keys(grades||{});
-      // keep original order, map to numeric values
-      const vals = keys.map(k=> parseInt((grades[k]||{}).score)||0);
-      return {labels: keys.map(k=> k.charAt(0).toUpperCase()+k.slice(1)), values: vals};
-    }
-
-    function renderSparkline(labels, values){
-      const c = document.getElementById('sparkline');
-      const ctx = c.getContext('2d');
-      if(window._spark) window._spark.destroy();
-      c.height = 48;
-      window._spark = new Chart(ctx,{
-        type:'line',
-        data:{labels, datasets:[{data:values, borderColor: getComputedStyle(document.documentElement).getPropertyValue('--accent')||'#0ea5a4', backgroundColor:'rgba(14,165,164,0.06)', fill:true, tension:0.35, pointRadius:0}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}},elements:{line:{borderWidth:2}}}
-      });
     }
 
     function recommendFor(score){
@@ -140,19 +112,17 @@
       document.getElementById('studentName').textContent = name;
       document.getElementById('studentEmail').textContent = p.email || p.emailAddress || '';
 
-      const {labels, values} = buildSmallSeries(p.grades || {});
+      // compute average and weakest subjects without any chart
+      const keys = Object.keys(p.grades||{});
+      const values = keys.map(k=> parseInt((p.grades[k]||{}).score)||0);
       const avg = values.length? Math.round(values.reduce((a,b)=>a+b,0)/values.length) : 0;
       document.getElementById('avgValue').textContent = values.length? (avg + '%') : 'N/A';
 
-      renderSparkline(labels, values);
-
-      // summary
       const summaryBox = document.getElementById('summaryBox');
-      summaryBox.innerHTML = values.length? `<p><strong>Average:</strong> ${avg}%</p><p class='muted'>Subjects: ${labels.length}</p>` : '<p class="muted">No grades available.</p>';
+      summaryBox.innerHTML = values.length? `<p><strong>Average:</strong> ${avg}%</p><p class='muted'>Subjects: ${keys.length}</p>` : '<p class="muted">No grades available.</p>';
 
       // recommendations: pick top 3 weakest subjects
       const recEl = document.getElementById('recommendations'); recEl.innerHTML='';
-      const keys = Object.keys(p.grades||{});
       keys.sort((a,b)=> (parseInt((p.grades[a]||{}).score||0)) - (parseInt((p.grades[b]||{}).score||0)));
       const weakest = keys.slice(0,3);
       weakest.forEach(k=>{
