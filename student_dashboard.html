@@ -130,11 +130,8 @@
         <p>&copy; 2025 SPARS. All rights reserved.</p>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-    // Chart.js CDN (used only for rendering the small grades sparkline)
-    (function(){
-        var s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/chart.js'; s.async=true; document.head.appendChild(s);
-    })();
         document.addEventListener('DOMContentLoaded', async () => {
             
             const userEmail = localStorage.getItem('userEmail');
