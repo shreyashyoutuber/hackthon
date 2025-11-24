@@ -1,447 +1,253 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Student Report — Eduwise</title>
-  <style>
-    /* Professional detailed report (no graphs) */
-    :root{--bg:#f7fafc;--card:#ffffff;--muted:#6b7280;--accent:#0f766e;--accent-weak:rgba(15,118,110,0.08);--radius:12px}
-    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:#0b2230;background:var(--bg)}
-    .container{max-width:1100px;margin:26px auto;padding:20px}
-    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-    .brand{display:flex;align-items:center;gap:12px}
-    .logo-img{width:48px;height:48px;border-radius:8px;object-fit:cover}
-    .brand-title{font-weight:700;color:#0b2230;font-size:18px}
-    .controls{display:flex;gap:10px}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Student Report - Eduwise</title>
+  <style>
+    /* Professional detailed report (no graphs) */
+    :root{--bg:#f7fafc;--card:#ffffff;--muted:#6b7280;--accent:#0f766e;--accent-weak:rgba(15,118,110,0.08);--radius:12px}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:#0b2230;background:var(--bg)}
+    .container{max-width:1100px;margin:26px auto;padding:20px}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo-img{width:48px;height:48px;border-radius:8px;object-fit:cover}
+    .brand-title{font-weight:700;color:#0b2230;font-size:18px}
+    .controls{display:flex;gap:10px}
 
-    .card{background:var(--card);border-radius:var(--radius);padding:20px;border:1px solid rgba(11,34,48,0.04);box-shadow:0 10px 30px rgba(14,30,37,0.04)}
-    .report-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:14px}
-    .report-title{font-size:20px;font-weight:700;color:#071726}
-    .report-sub{color:var(--muted);font-size:13px}
+    .card{background:var(--card);border-radius:var(--radius);padding:20px;border:1px solid rgba(11,34,48,0.04);box-shadow:0 10px 30px rgba(14,30,37,0.04)}
+    .report-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:14px}
+    .report-title{font-size:20px;font-weight:700;color:#071726}
+    .report-sub{color:var(--muted);font-size:13px}
 
-    .summary{display:flex;gap:18px;align-items:center;margin-top:8px}
-    .summary .box{background:var(--accent-weak);padding:12px;border-radius:10px;color:#063233}
-    .summary .avg{font-weight:800;font-size:20px}
+    .summary{display:flex;gap:18px;align-items:center;margin-top:8px}
+    .summary .box{background:var(--accent-weak);padding:12px;border-radius:10px;color:#063233}
+    .summary .avg{font-weight:800;font-size:20px}
 
-    /* Detailed table */
-    .detail-table{width:100%;border-collapse:collapse;margin-top:18px}
-    .detail-table thead th{text-align:left;padding:10px 12px;color:var(--muted);font-weight:700;font-size:13px;border-bottom:1px solid rgba(11,34,48,0.06)}
-    .detail-table tbody td{padding:12px;border-bottom:1px solid rgba(11,34,48,0.03);vertical-align:middle}
-    .badge{display:inline-block;padding:6px 10px;border-radius:999px;background:var(--accent-weak);color:var(--accent);font-weight:700}
+    /* Detailed table */
+    .detail-table{width:100%;border-collapse:collapse;margin-top:18px}
+    .detail-table thead th{text-align:left;padding:10px 12px;color:var(--muted);font-weight:700;font-size:13px;border-bottom:1px solid rgba(11,34,48,0.06)}
+    .detail-table tbody td{padding:12px;border-bottom:1px solid rgba(11,34,48,0.03);vertical-align:middle}
+    .badge{display:inline-block;padding:6px 10px;border-radius:999px;background:var(--accent-weak);color:var(--accent);font-weight:700}
 
-    .section-title{margin-top:18px;margin-bottom:8px;font-weight:700;color:#071726}
-    .muted{color:var(--muted)}
+    .section-title{margin-top:18px;margin-bottom:8px;font-weight:700;color:#071726}
+    .muted{color:var(--muted)}
 
-    .recommendation{background:#fbfdfc;border-radius:10px;padding:12px;border:1px solid rgba(11,34,48,0.02)}
-    .recommendation ul{margin:8px 0 0 18px;color:var(--muted)}
+    .recommendation{background:#fbfdfc;border-radius:10px;padding:12px;border:1px solid rgba(11,34,48,0.02)}
+    .recommendation ul{margin:8px 0 0 18px;color:var(--muted)}
 
-    .action-plan{margin-top:14px}
-    .action-plan li{margin-bottom:8px;color:var(--muted)}
+    .action-plan{margin-top:14px}
+    .action-plan li{margin-bottom:8px;color:var(--muted)}
 
-    .print-hidden{display:inline-block}
-    @media print{ .print-hidden{display:none} }
-  </style>
+    .print-hidden{display:inline-block}
+     @media print{ .print-hidden{display:none} }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="brand">
-        <img src="logo.jpg" class="logo-img" alt="logo">
-        <div>
-          <div class="brand-title">Eduwise</div>
-          <div class="report-sub">Detailed performance — lightweight view</div>
-        </div>
-      </div>
-      <div class="controls">
-        <a href="student_dashboard.html" class="report-sub">Back</a>
-        <button id="printReport" class="card" style="border-radius:10px;padding:8px 12px;background:var(--accent);color:#042022;border:none;cursor:pointer">Print</button>
-      </div>
-    </header>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <img src="logo.jpg" class="logo-img" alt="logo">
+        <div>
+          <div class="brand-title">Eduwise</div>
+        <div class="report-sub">Detailed performance - lightweight view</div>
+        </div>
+      </div>
+      <div class="controls">
+        <a href="student_dashboard.html" class="report-sub">Back</a>
+        <button id="printReport" class="card" style="border-radius:10px;padding:8px 12px;background:var(--accent);color:#042022;border:none;cursor:pointer">Print</button>
+      </div>
+    </header>
 
-    <main class="card">
-      <div class="report-head">
-        <div>
-          <div id="reportTitle" class="report-title">Performance Report</div>
-          <div id="reportSubtitle" class="report-sub">Personalised summary and next steps</div>
-        </div>
-        <div class="report-sub">Generated: <span id="reportGenerated">—</span></div>
-      </div>
+    <main class="card">
+      <div class="report-head">
+        <div>
+          <div id="reportTitle" class="report-title">Performance Report</div>
+          <div id="reportSubtitle" class="report-sub">Personalised summary and next steps</div>
+        </div>
+        <div class="report-sub">Generated: <span id="reportGenerated">-</span></div>
+      </div>
 
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
-        <div>
-          <div id="studentName" style="font-weight:700;color:#071726;font-size:16px">Student</div>
-          <div class="report-sub" id="studentEmail">student@example.com</div>
-          <div class="muted" id="studentMeta" style="margin-top:6px;font-size:13px">ID: — • Class: —</div>
-        </div>
-        <div class="summary">
-          <div class="box">
-            <div class="muted">Average</div>
-            <div class="avg" id="avgValue">—</div>
-          </div>
-          <div style="min-width:180px">
-            <div class="muted">Overall comments</div>
-            <div id="overallComment" style="margin-top:6px;color:#0b2230">No data yet.</div>
-          </div>
-        </div>
-      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+        <div>
+          <div id="studentName" style="font-weight:700;color:#071726;font-size:16px">Student</div>
+          <div class="report-sub" id="studentEmail">student@example.com</div>
+          <div class="muted" id="studentMeta" style="margin-top:6px;font-size:13px">ID: - • Class: -</div>
+        </div>
+        <div class="summary">
+          <div class="box">
+            <div class="muted">Average</div>
+            <div class="avg" id="avgValue">-</div>
+          </div>
+          <div style="min-width:180px">
+            <div class="muted">Overall comments</div>
+            <div id="overallComment" style="margin-top:6px;color:#0b2230">No data yet.</div>
+          </div>
+        </div>
+      </div>
 
-      <div class="section-title">Subject Breakdown</div>
-      <table class="detail-table" aria-describedby="detailDesc">
-        <caption id="detailDesc" style="caption-side:top;text-align:left;padding-bottom:8px;color:var(--muted)">Detailed marks, grade and improvement notes per subject</caption>
-        <thead>
-          <tr><th>Subject</th><th>Score</th><th>Grade</th><th>Improvement Needed</th><th>Recommendations</th></tr>
-        </thead>
-        <tbody id="detailBody">
-          <tr><td colspan="5" class="muted">Loading subject data…</td></tr>
-        </tbody>
-      </table>
+      <div class="section-title">Subject Breakdown</div>
+      <table class="detail-table" aria-describedby="detailDesc">
+        <caption id="detailDesc" style="caption-side:top;text-align:left;padding-bottom:8px;color:var(--muted)">Detailed marks, grade and improvement notes per subject</caption>
+        <thead>
+          <tr><th>Subject</th><th>Score</th><th>Grade</th><th>Improvement Needed</th><th>Recommendations</th></tr>
+        </thead>
+        <tbody id="detailBody">
+          <tr><td colspan="5" class="muted">Loading subject data…</td></tr>
+        </tbody>
+      </table>
 
-      <div class="section-title">Top Improvement Areas</div>
-      <div id="improveList" class="recommendation">No areas identified.</div>
+      <div class="section-title">Top Improvement Areas</div>
+      <div id="improveList" class="recommendation">No areas identified.</div>
 
-      <div class="section-title">Recommended Resources & Plan</div>
-      <div id="resourceBlock" class="recommendation">
-        <strong>Study Plan (Weekly):</strong>
-        <ul id="weeklyPlan"></ul>
-        <strong style="display:block;margin-top:8px">Resources:</strong>
-        <ul id="resourceList"></ul>
-      </div>
+      <div class="section-title">Recommended Resources & Plan</div>
+      <div id="resourceBlock" class="recommendation">
+        <strong>Study Plan (Weekly):</strong>
+        <ul id="weeklyPlan"></ul>
+        <strong style="display:block;margin-top:8px">Resources:</strong>
+        <ul id="resourceList"></ul>
+      </div>
 
-      <div class="section-title">Action Plan</div>
-      <ul id="actionPlan" class="action-plan"></ul>
-    </main>
-  </div>
+      <div class="section-title">Action Plan</div>
+      <ul id="actionPlan" class="action-plan"></ul>
+    </main>
+  </div>
 
-  <script>
-    async function fetchProfile(){
-      const email = localStorage.getItem('userEmail');
-      if(!email){ alert('Not logged in'); location.href='login.html'; return null }
-      try{
-        const r = await fetch('/api/my-profile',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({email})});
-        if(!r.ok) throw new Error('Server error');
-        const d = await r.json(); if(!d.success) throw new Error(d.message||'no profile'); return d;
-      }catch(e){ console.error(e); alert('Could not load profile'); return null }
-    }
+  <script>
+		async function fetchProfile(){
+			const email = localStorage.getItem('userEmail');
+			if(!email){ alert('Not logged in'); location.href='login.html'; return null }
+			try{
+				const r = await fetch('/api/my-profile',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({email})});
+				if(!r.ok) throw new Error('Server error');
+				const d = await r.json();
+				// Support either: { success: true, data: { ...profile } } OR direct profile object
+				if (d && typeof d === 'object'){
+					if (d.success && d.data) return d.data;
+					if (d.profile) return d.profile;
+					// if server sent wrapper with success only and profile at top, try common keys
+					if (d.success && (d.fullName || d.grades)) return d;
+					// otherwise if it's direct profile
+					if (d.fullName || d.email || d.grades) return d;
+				}
+				throw new Error('no profile');
+			}catch(e){ console.error(e); alert('Could not load profile'); return null }
+		}
 
-    function recommendFor(score){
-      const s = parseInt(score)||0;
-      if (s < 50) return {
-        level: 'Needs Strong Improvement',
-        bullets: ['Relearn fundamentals (short lessons)', 'Daily 30-min practice problems', 'One-on-one tutoring for core topics']
-      };
-      if (s < 65) return {
-        level: 'Below Expectations',
-        bullets: ['Target weak subtopics with focused exercises', 'Weekly mini-tests', 'Group study for problem-solving']
-      };
-      if (s < 80) return {
-        level: 'Approaching Target',
-        bullets: ['Timed practice tests', 'Application-based problems', 'Peer review sessions']
-      };
-      return {
-        level: 'On Track',
-        bullets: ['Maintain weekly mocks', 'Teach topics to peers', 'Advanced application problems']
-      };
-    }
+    function recommendFor(score){
+      const s = parseInt(score)||0;
+      if (s < 50) return {
+        level: 'Needs Strong Improvement',
+        bullets: ['Relearn fundamentals (short lessons)', 'Daily 30-min practice problems', 'One-on-one tutoring for core topics']
+      };
+      if (s < 65) return {
+        level: 'Below Expectations',
+        bullets: ['Target weak subtopics with focused exercises', 'Weekly mini-tests', 'Group study for problem-solving']
+      };
+      if (s < 80) return {
+        level: 'Approaching Target',
+        bullets: ['Timed practice tests', 'Application-based problems', 'Peer review sessions']
+      };
+      return {
+        level: 'On Track',
+        bullets: ['Maintain weekly mocks', 'Teach topics to peers', 'Advanced application problems']
+      };
+    }
 
-    function makeWeeklyPlan(weakSubjects){
-      const plan = [];
-      if (weakSubjects.length === 0) {
-        plan.push('Keep doing weekly mock tests (1–2 per week)');
-        plan.push('Maintain study logs and peer discussions');
-        return plan;
-      }
-      // distribute topics across week
-      const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-      for (let i=0;i<7;i++){
-        const subj = weakSubjects[i % weakSubjects.length];
-        plan.push(`${days[i]}: 45–60 min focused practice on ${subj}`);
-      }
-      plan.push('Weekly mock test on Sunday (timed)');
-      return plan;
-    }
+    function makeWeeklyPlan(weakSubjects){
+      const plan = [];
+			if (weakSubjects.length === 0) {
+				plan.push('Keep doing weekly mock tests (1-2 per week)');
+        plan.push('Maintain study logs and peer discussions');
+        return plan;
+      }
+      // distribute topics across week
+      const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+      for (let i=0;i<7;i++){
+        const subj = weakSubjects[i % weakSubjects.length];
+				plan.push(`${days[i]}: 45-60 min focused practice on ${subj}`);
+      }
+      plan.push('Weekly mock test on Sunday (timed)');
+      return plan;
+    }
 
-    (async function init(){
-      const p = await fetchProfile(); if(!p) return;
-      document.getElementById('reportGenerated').textContent = new Date().toLocaleString();
-      const name = p.fullName||p.full_name||p.name||p.fullname||p.email||'';
-      document.getElementById('studentName').textContent = name;
-      document.getElementById('studentEmail').textContent = p.email || p.emailAddress || '';
-      // optional meta values if present
-      const meta = [];
-      if (p.schoolId || p.school_id) meta.push(`School ID: ${p.schoolId||p.school_id}`);
-      if (p.class) meta.push(`Class: ${p.class}`);
-      document.getElementById('studentMeta').textContent = meta.join(' • ');
+    (async function init(){
+      const p = await fetchProfile(); if(!p) return;
+      document.getElementById('reportGenerated').textContent = new Date().toLocaleString();
+      const name = p.fullName||p.full_name||p.name||p.fullname||p.email||'';
+      document.getElementById('studentName').textContent = name;
+      document.getElementById('studentEmail').textContent = p.email || p.emailAddress || '';
+      // optional meta values if present
+      const meta = [];
+      if (p.schoolId || p.school_id) meta.push(`School ID: ${p.schoolId||p.school_id}`);
+      if (p.class) meta.push(`Class: ${p.class}`);
+      document.getElementById('studentMeta').textContent = meta.join(' • ');
 
-      const keys = Object.keys(p.grades||{});
-      if (keys.length === 0) {
-        document.getElementById('avgValue').textContent = 'N/A';
-        document.getElementById('detailBody').innerHTML = '<tr><td colspan="5" class="muted">No grades available.</td></tr>';
-        document.getElementById('improveList').textContent = 'No areas identified.';
-        return;
-      }
+      const keys = Object.keys(p.grades||{});
+      if (keys.length === 0) {
+        document.getElementById('avgValue').textContent = 'N/A';
+        document.getElementById('detailBody').innerHTML = '<tr><td colspan="5" class="muted">No grades available.</td></tr>';
+        document.getElementById('improveList').textContent = 'No areas identified.';
+        return;
+      }
 
-      // build table rows
-      const tbody = document.getElementById('detailBody'); tbody.innerHTML = '';
-      const scores = [];
-      keys.forEach(k => {
-        const g = p.grades[k]||{}; const score = parseInt(g.score)||0; scores.push(score);
-        const grade = g.grade || computeLetter(score);
-        const rec = recommendFor(score);
-        const imp = rec.level;
-        const recList = rec.bullets.slice(0,2).join('; ');
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${capitalize(k)}</td><td>${score}%</td><td><span class="badge">${grade}</span></td><td>${imp}</td><td>${escapeHtml(recList)}</td>`;
-        tbody.appendChild(tr);
-      });
+      // build table rows
+      const tbody = document.getElementById('detailBody'); tbody.innerHTML = '';
+      const scores = [];
+      keys.forEach(k => {
+        const g = p.grades[k]||{}; const score = parseInt(g.score)||0; scores.push(score);
+        const grade = g.grade || computeLetter(score);
+        const rec = recommendFor(score);
+        const imp = rec.level;
+        const recList = rec.bullets.slice(0,2).join('; ');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${capitalize(k)}</td><td>${score}%</td><td><span class="badge">${grade}</span></td><td>${imp}</td><td>${escapeHtml(recList)}</td>`;
+        tbody.appendChild(tr);
+      });
 
-      // average and overall comment
-      const avg = Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
-      document.getElementById('avgValue').textContent = avg + '%';
-      const strengths = keys.filter(k=> (parseInt((p.grades[k]||{}).score)||0) >= 80).map(capitalize);
-      const weak = keys.filter(k=> (parseInt((p.grades[k]||{}).score)||0) < 75).map(capitalize);
-      document.getElementById('overallComment').textContent = strengths.length? `Strong in ${strengths.slice(0,3).join(', ')}.` : 'Needs broader improvement across subjects.';
+      // average and overall comment
+      const avg = Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+      document.getElementById('avgValue').textContent = avg + '%';
+      const strengths = keys.filter(k=> (parseInt((p.grades[k]||{}).score)||0) >= 80).map(capitalize);
+      const weak = keys.filter(k=> (parseInt((p.grades[k]||{}).score)||0) < 75).map(capitalize);
+      document.getElementById('overallComment').textContent = strengths.length? `Strong in ${strengths.slice(0,3).join(', ')}.` : 'Needs broader improvement across subjects.';
 
-      // improvement list
-      const impEl = document.getElementById('improveList');
-      if (weak.length === 0) impEl.textContent = 'No major improvement areas; maintain current practice.';
-      else {
-        impEl.innerHTML = '<ul>' + weak.map(s=> `<li><strong>${s}</strong>: Focus on fundamentals, practice problems, and weekly timed tests.</li>`).join('') + '</ul>';
-      }
+      // improvement list
+      const impEl = document.getElementById('improveList');
+      if (weak.length === 0) impEl.textContent = 'No major improvement areas; maintain current practice.';
+      else {
+        impEl.innerHTML = '<ul>' + weak.map(s=> `<li><strong>${s}</strong>: Focus on fundamentals, practice problems, and weekly timed tests.</li>`).join('') + '</ul>';
+      }
 
-      // weekly plan and resources
-      const plan = makeWeeklyPlan(weak.map(s=> capitalize(s)));
-      const planEl = document.getElementById('weeklyPlan'); planEl.innerHTML = '';
-      plan.forEach(item => { const li = document.createElement('li'); li.textContent = item; planEl.appendChild(li); });
+      // weekly plan and resources
+      const plan = makeWeeklyPlan(weak.map(s=> capitalize(s)));
+      const planEl = document.getElementById('weeklyPlan'); planEl.innerHTML = '';
+      plan.forEach(item => { const li = document.createElement('li'); li.textContent = item; planEl.appendChild(li); });
 
-      const resourceEl = document.getElementById('resourceList'); resourceEl.innerHTML = '';
-      const resources = [
-        {title:'Khan Academy — fundamentals', url:'https://www.khanacademy.org'},
-        {title:'GeeksforGeeks — practice problems', url:'https://www.geeksforgeeks.org'},
-        {title:'LeetCode — problem solving', url:'https://leetcode.com'}
-      ];
-      resources.forEach(r=>{ const li=document.createElement('li'); li.innerHTML = `<a href="${r.url}" target="_blank">${r.title}</a>`; resourceEl.appendChild(li); });
+      const resourceEl = document.getElementById('resourceList'); resourceEl.innerHTML = '';
+			const resources = [
+				{title:'Khan Academy - fundamentals', url:'https://www.khanacademy.org'},
+				{title:'GeeksforGeeks - practice problems', url:'https://www.geeksforgeeks.org'},
+				{title:'LeetCode - problem solving', url:'https://leetcode.com'}
+			];
+      resources.forEach(r=>{ const li=document.createElement('li'); li.innerHTML = `<a href="${r.url}" target="_blank">${r.title}</a>`; resourceEl.appendChild(li); });
 
-      // action plan bullets
-      const act = document.getElementById('actionPlan'); act.innerHTML='';
-      weak.slice(0,5).forEach(s=>{ const li = document.createElement('li'); li.textContent = `Focus 3 sessions/week on ${capitalize(s)} for 4 weeks.`; act.appendChild(li); });
-      if (weak.length===0) { const li=document.createElement('li'); li.textContent='Keep up current study routine and weekly mocks.'; act.appendChild(li); }
+      // action plan bullets
+      const act = document.getElementById('actionPlan'); act.innerHTML='';
+      weak.slice(0,5).forEach(s=>{ const li = document.createElement('li'); li.textContent = `Focus 3 sessions/week on ${capitalize(s)} for 4 weeks.`; act.appendChild(li); });
+      if (weak.length===0) { const li=document.createElement('li'); li.textContent='Keep up current study routine and weekly mocks.'; act.appendChild(li); }
 
-      document.getElementById('printReport').addEventListener('click',(e)=>{ e.preventDefault(); window.print(); });
-    })();
+      document.getElementById('printReport').addEventListener('click',(e)=>{ e.preventDefault(); window.print(); });
+    })();
 
-    function computeLetter(score){ if (score>=90) return 'A+'; if(score>=80) return 'A'; if(score>=70) return 'B'; if(score>=60) return 'C'; return 'D'; }
-    function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
-    function escapeHtml(str){ return String(str).replace(/[&<>"]/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]); }); }
-  </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Detailed Student Report - Eduwise</title>
-    <link rel="stylesheet" href="student_dashborad.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-
-  <header class="site-header">
-    <div class="header-content">
-      <div class="site-branding">
-        <a href="index.html" class="logo-link"><img src="logo.jpg" class="logo-img" alt="logo"><span class="logo-text">Eduwise</span></a>
-      </div>
-      <nav class="main-nav">
-        <ul class="nav-list">
-          <li><a href="student_dashboard.html" class="nav-link">Back to Dashboard</a></li>
-          <li><a href="#" id="printReport" class="nav-link">Print / Export</a></li>
-        </ul>
-      </nav>
-    </div>
-  </header>
-
-  <main class="dashboard-page">
-    <div class="dashboard-grid">
-      <section class="panel panel-right" style="grid-column:1/-1;">
-        <div class="card">
-          <div class="card-header">
-            <div><h2 class="card-title" id="reportTitle">Detailed Performance Report</h2>
-              <p class="dashboard-subtitle" id="reportSubtitle">Comprehensive breakdown and improvement plan</p>
-            </div>
-            <div class="muted">Generated: <strong id="reportGenerated">-</strong></div>
-          </div>
-
-          <div class="card-body">
-            <div style="display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap">
-              <div style="flex:1 1 420px;min-width:320px" class="report-chart">
-                <h4 style="margin:0 0 8px">Score by Subject</h4>
-                <canvas id="reportBarChart" style="width:100%;height:140px;max-width:520px"></canvas>
-              </div>
-
-              <div style="flex:0 0 320px;min-width:260px">
-                <h4 style="margin:0 0 8px">Summary</h4>
-                <div id="summaryBox" style="background:transparent;padding:8px;border-radius:10px"></div>
-                <h4 style="margin-top:12px">Top Recommendations</h4>
-                <ol id="recommendations" style="margin-left:16px;color:var(--muted)"></ol>
-              </div>
-            </div>
-
-            <div style="margin-top:18px">
-              <h4>Action Plan</h4>
-              <ul id="actionPlan" style="color:var(--muted)"></ul>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  </main>
-
-  <footer class="site-footer">&copy; 2025 SPARS Eduwise</footer>
-
-  <script>
-    async function fetchProfile() {
-      const userEmail = localStorage.getItem('userEmail');
-      if (!userEmail) { alert('Not logged in'); location.href='login.html'; return null; }
-      try {
-        const resp = await fetch('/api/my-profile', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({email: userEmail})});
-        if (!resp.ok) throw new Error('Server error');
-        const data = await resp.json();
-        if (!data.success) throw new Error(data.message || 'No profile');
-        return data;
-      } catch (e) { console.error(e); alert('Unable to load profile.'); return null; }
-    }
-
-    function recommendForSubject(subject, score) {
-      const s = parseInt(score) || 0;
-      const rec = [];
-      if (s < 50) {
-        rec.push('Start with fundamentals: review basics and watch short concept videos.');
-        rec.push('Do guided practice: solve 20 small problems and check answers.');
-        rec.push('Attend a tutoring/mentoring session focused on fundamentals.');
-      } else if (s < 70) {
-        rec.push('Focus on problem-solving and past-year questions.');
-        rec.push('Identify 3 weak topics and practice focused exercises weekly.');
-      } else if (s < 85) {
-        rec.push('Increase timed practice and mock tests to build speed.');
-        rec.push('Work on application-level problems and sample interview questions.');
-      } else {
-        rec.push('Maintain consistency: weekly mock tests and peer discussions.');
-        rec.push('Teach the topic to someone else to deepen mastery.');
-      }
-      return rec;
-    }
-
-    function buildRecommendations(grades) {
-      const items = [];
-      const keys = Object.keys(grades || {});
-      // Sort by ascending score
-      keys.sort((a,b)=> (parseInt((grades[a]||{}).score||0)) - (parseInt((grades[b]||{}).score||0)));
-      const topWeak = keys.slice(0,3);
-      topWeak.forEach(s => {
-        const score = (grades[s]||{}).score||'0';
-        const human = s.charAt(0).toUpperCase()+s.slice(1);
-        items.push({subject:human, score, suggestions: recommendForSubject(s, score)});
-      });
-      return items;
-    }
-
-    function renderSummary(profile) {
-      const grades = profile.grades || {};
-      const keys = Object.keys(grades);
-      if (keys.length===0) return '<p>No grades available.</p>';
-      let total=0; keys.forEach(k=> total += parseInt((grades[k]||{}).score||0));
-      const avg = Math.round(total/keys.length);
-      const strengths = keys.filter(k=> parseInt((grades[k]||{}).score||0) >= 80).slice(0,3).map(s=> s.charAt(0).toUpperCase()+s.slice(1));
-      return `<p><strong>Average score:</strong> ${avg}%</p><p><strong>Strengths:</strong> ${strengths.join(', ') || 'None yet'}</p>`;
-    }
-
-    function renderActionPlan(recs) {
-      const ul = document.getElementById('actionPlan'); ul.innerHTML='';
-      recs.forEach((r, idx)=>{
-        const li = document.createElement('li');
-        li.style.marginBottom='8px';
-        li.textContent = `${r.subject} (${r.score}%): ${r.suggestions[0]}`;
-        ul.appendChild(li);
-      });
-    }
-
-    function renderRecommendationsList(recs) {
-      const ol = document.getElementById('recommendations'); ol.innerHTML='';
-      recs.forEach(r=>{
-        const li = document.createElement('li');
-        li.innerHTML = `<strong>${r.subject} — ${r.score}%</strong>: ${r.suggestions[0]}`;
-        ol.appendChild(li);
-      });
-    }
-
-    function renderBarChart(grades) {
-      const keys = Object.keys(grades||{});
-      const labels = keys.map(k=> k.charAt(0).toUpperCase()+k.slice(1));
-      const data = keys.map(k=> parseInt((grades[k]||{}).score||0));
-      const canvas = document.getElementById('reportBarChart');
-      canvas.height = 140; // small professional height
-      const ctx = canvas.getContext('2d');
-      if (window._reportChart) window._reportChart.destroy();
-
-      // subtle vertical gradient for bars
-      const gradient = ctx.createLinearGradient(0,0,0,140);
-      gradient.addColorStop(0, 'rgba(6,182,212,0.26)');
-      gradient.addColorStop(1, 'rgba(6,182,212,0.06)');
-
-      window._reportChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [{
-            label: 'Score %',
-            data,
-            backgroundColor: gradient,
-            borderColor: 'rgba(6,182,212,0.85)',
-            borderWidth: 0,
-            borderRadius: 8,
-            maxBarThickness: 28,
-            barPercentage: 0.6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: { intersect: false, mode: 'index' },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: '#0b1220',
-              titleColor: '#fff',
-              bodyColor: '#e6f0f2',
-              cornerRadius: 6,
-              padding: 8
-            }
-          },
-          scales: {
-            x: { grid: { display: false }, ticks: { color: '#9aa6b2' } },
-            y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#9aa6b2', stepSize: 20 } }
-          },
-          animation: { duration: 700, easing: 'cubicBezier(.2,.9,.2,1)' },
-          layout: { padding: { left: 6, right: 6, top: 6, bottom: 6 } }
-        }
-      });
-    }
-
-    (async function init(){
-      const profile = await fetchProfile();
-      if (!profile) return;
-      document.getElementById('reportGenerated').textContent = new Date().toLocaleString();
-      document.getElementById('reportTitle').textContent = `Performance Report — ${profile.fullName || profile.full_name || profile.name || profile.fullname || ''}`;
-      document.getElementById('reportSubtitle').textContent = 'Detailed breakdown with personalized improvement plan';
-      document.getElementById('summaryBox').innerHTML = renderSummary(profile);
-      const recs = buildRecommendations(profile.grades || {});
-      renderRecommendationsList(recs);
-      renderActionPlan(recs);
-      renderBarChart(profile.grades || {});
-
-      document.getElementById('printReport').addEventListener('click', (e)=>{ e.preventDefault(); window.print(); });
-    })();
-  </script>
+    function computeLetter(score){ if (score>=90) return 'A+'; if(score>=80) return 'A'; if(score>=70) return 'B'; if(score>=60) return 'C'; return 'D'; }
+		function capitalize(s){
+			if (s === null || s === undefined) return '';
+			s = String(s);
+			if (s.length === 0) return '';
+			return s.charAt(0).toUpperCase()+s.slice(1);
+		}
+    function escapeHtml(str){ return String(str).replace(/[&<>"]/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]); }); }
+  </script>
 </body>
 </html>
