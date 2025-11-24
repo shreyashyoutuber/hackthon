@@ -20,19 +20,12 @@
                 </a>
             </div>
 
-            <form class="search-form" role="search">
-                <label for="site-search" class="visually-hidden">Search the site</label>
-                <input type="search" id="site-search" placeholder="Search for students, reports, and more" class="search-input">
-                <button type="submit" class="search-button" aria-label="Search">
-                    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                </button>
-            </form>
-
-            <nav class="main-nav">
+            <nav class="main-nav" aria-label="Main navigation">
                 <ul class="nav-list">
+                    <li class="nav-item"><a href="#features" class="nav-link">Features</a></li>
+                    <li class="nav-item"><a href="#testimonials" class="nav-link">Testimonials</a></li>
                     <li class="nav-item"><a href="login.html" class="nav-link">Login</a></li>
-                    <!-- <li class="nav-item"><a href="/reports" class="nav-link">Reports</a></li>
-                    <li class="nav-item"><a href="/dashboard" class="nav-link">Dashboard</a></li> -->
+                    <li class="nav-item"><a href="login.html" class="btn btn-primary nav-cta">Get Started</a></li>
                 </ul>
             </nav>
         </div>
@@ -47,7 +40,10 @@
                         Track academic progress, identify areas for improvement, and generate insightful reports 
                         to enhance student learning outcomes.
                     </p>
-                    <a href="login.html" class="call-to-action-btn">Get Started</a>
+                    <div class="hero-cta">
+                        <a href="login.html" class="call-to-action-btn">Get Started</a>
+                        <a href="#features" class="secondary-link">Learn more</a>
+                    </div>
                 </div>
                 <div class="hero-image-wrapper"> 
                     <img src="interviewlogo.jpg" alt="Interview process showing a resume" class="hero-image">
@@ -55,7 +51,7 @@
             </div>
         </section>
 
-        <section class="features-section">
+        <section class="features-section" id="features">
             <div class="features-container">
                 <h2 class="section-title">Powerful Features for Everyone</h2>
                 <p class="section-subtitle">Track. Analyze. Improve.</p>
@@ -79,6 +75,22 @@
             </div>
         </section>
 
+        <section class="testimonials-section" id="testimonials">
+            <div class="testimonials-container">
+                <h2 class="section-title">What Educators & Students Say</h2>
+                <div class="testimonials-grid">
+                    <blockquote class="testimonial-card">
+                        <p>“Eduwise helped my students improve their scores with actionable feedback. The reports save me hours each week.”</p>
+                        <cite>— Ms. Priya, Computer Science Teacher</cite>
+                    </blockquote>
+                    <blockquote class="testimonial-card">
+                        <p>“I could see exactly where I was falling behind. The interview prep tips were super helpful.”</p>
+                        <cite>— Rahul, Final Year Student</cite>
+                    </blockquote>
+                </div>
+            </div>
+        </section>
+
         <section class="cta-section">
             <h2 class="cta-title">Ready to Get Started?</h2>
             <p class="cta-subtitle">Unlock your full potential today. Create an account or log in to access your dashboard.</p>
@@ -88,7 +100,18 @@
     </main>
 
     <footer class="site-footer">
-        <p>&copy; 2025 Eduwise. All rights reserved.</p>
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <img src="logo.jpg" alt="Eduwise" class="footer-logo">
+                <p class="muted">Helping students bridge academia and careers.</p>
+            </div>
+            <div class="footer-links">
+                <a href="#features">Features</a>
+                <a href="#testimonials">Testimonials</a>
+                <a href="login.html">Login</a>
+            </div>
+        </div>
+        <p class="copyright">&copy; 2025 Eduwise. All rights reserved.</p>
     </footer>
 
 </body>
