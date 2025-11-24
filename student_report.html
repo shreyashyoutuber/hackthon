@@ -36,9 +36,9 @@
 
           <div class="card-body">
             <div style="display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap">
-              <div style="flex:1 1 420px;min-width:320px">
+              <div style="flex:1 1 420px;min-width:320px" class="report-chart">
                 <h4 style="margin:0 0 8px">Score by Subject</h4>
-                <canvas id="reportBarChart" style="width:100%;height:260px"></canvas>
+                <canvas id="reportBarChart" style="width:100%;height:140px;max-width:520px"></canvas>
               </div>
 
               <div style="flex:0 0 320px;min-width:260px">
@@ -141,12 +141,52 @@
       const keys = Object.keys(grades||{});
       const labels = keys.map(k=> k.charAt(0).toUpperCase()+k.slice(1));
       const data = keys.map(k=> parseInt((grades[k]||{}).score||0));
-      const ctx = document.getElementById('reportBarChart').getContext('2d');
+      const canvas = document.getElementById('reportBarChart');
+      canvas.height = 140; // small professional height
+      const ctx = canvas.getContext('2d');
       if (window._reportChart) window._reportChart.destroy();
+
+      // subtle vertical gradient for bars
+      const gradient = ctx.createLinearGradient(0,0,0,140);
+      gradient.addColorStop(0, 'rgba(6,182,212,0.26)');
+      gradient.addColorStop(1, 'rgba(6,182,212,0.06)');
+
       window._reportChart = new Chart(ctx, {
-        type:'bar',
-        data:{ labels, datasets:[{label:'Score %', data, backgroundColor: labels.map(l=> 'rgba(6,182,212,0.18)'), borderColor: 'rgba(6,182,212,0.9)', borderWidth:1 }] },
-        options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,max:100}}}
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Score %',
+            data,
+            backgroundColor: gradient,
+            borderColor: 'rgba(6,182,212,0.85)',
+            borderWidth: 0,
+            borderRadius: 8,
+            maxBarThickness: 28,
+            barPercentage: 0.6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { intersect: false, mode: 'index' },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#0b1220',
+              titleColor: '#fff',
+              bodyColor: '#e6f0f2',
+              cornerRadius: 6,
+              padding: 8
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#9aa6b2' } },
+            y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#9aa6b2', stepSize: 20 } }
+          },
+          animation: { duration: 700, easing: 'cubicBezier(.2,.9,.2,1)' },
+          layout: { padding: { left: 6, right: 6, top: 6, bottom: 6 } }
+        }
       });
     }
 
