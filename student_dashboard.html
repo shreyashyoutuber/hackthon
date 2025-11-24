@@ -31,51 +31,97 @@
 
     <main class="dashboard-page">
         <section class="dashboard-section">
-            <div class="dashboard-container">
-                <h1 class="dashboard-title" id="welcome-title">Welcome, ...</h1>
-                <p class="dashboard-subtitle">Here's a summary of your academic progress.</p>
-                
-                <form class="subject-search-form" id="subjectSearchForm">
-                    <label for="subject-search" class="visually-hidden">Search for subject marks</label>
-                    <div class="search-input-group">
-                        <input type="search" id="subject-search" placeholder="Enter subject name (e.g., Math, Science)" required>
-                        <button type="submit" class="search-btn">Search Marks</button>
+            <div class="dashboard-grid">
+                <aside class="panel panel-left">
+                    <div class="profile-card card">
+                        <div class="profile-top">
+                            <div class="avatar"> <img src="logo.jpg" alt="avatar"/></div>
+                            <div class="profile-info">
+                                <h3 id="profileName">Student</h3>
+                                <p id="profileEmail" class="muted">student@example.com</p>
+                            </div>
+                        </div>
+                        <div class="profile-actions">
+                            <button class="btn" id="editProfileBtn">Edit Profile</button>
+                            <button class="btn btn-outline" id="contactTeacherBtn">Contact Teacher</button>
+                        </div>
                     </div>
-                    <div id="searchResults" class="search-results"></div>
-                </form>
 
-                <div class="card-grid">
-                    <div class="card summary-card">
+                    <div class="stats-card card">
+                        <h4 class="card-title">Quick Stats</h4>
+                        <div class="stats-list">
+                            <div class="stat">
+                                <div class="stat-value" id="overallGradeSmall">N/A</div>
+                                <div class="stat-label">Overall Grade</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value" id="subjectsCount">0</div>
+                                <div class="stat-label">Subjects</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value" id="interviewReady">--</div>
+                                <div class="stat-label">Interview Ready</div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <section class="panel panel-right">
+                    <div class="card">
                         <div class="card-header">
-                            <h2 class="card-title">Overall Performance</h2>
+                            <h2 class="card-title" id="welcome-title">Welcome, ...</h2>
+                            <p class="dashboard-subtitle">Here's a summary of your academic progress.</p>
+                        </div>
+                        <div class="card-body card-body--row">
+                            <div class="performance">
+                                    <p class="score-lg" id="overallGrade">N/A</p>
+                                    <p class="card-text" id="overall-message">No grades found.</p>
+                                    <div style="margin-top:12px">
+                                        <canvas id="gradesChart" aria-label="Grades chart" role="img"></canvas>
+                                    </div>
+                            </div>
+                            <div class="interview" id="interviewSuggestion">
+                                <h4>Interview Readiness</h4>
+                                <div class="interview-body card-text">Evaluating your performance...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Recent Grades</h3>
                         </div>
                         <div class="card-body">
-                            <p class="score-lg" id="overallGrade">N/A</p>
-                            <p class="card-text" id="overall-message">No grades found.</p>
-                        </div>
-                    </div>
-
-                    <div class="card summary-card">
-                        <div class="card-header">
-                            <h2 class="card-title">Interview Readiness</h2>
-                        </div>
-                        <div id="interviewSuggestion" class="card-body">
-                            <p class="card-text">Evaluating your performance...</p>
-                        </div>
-                    </div>
-
-                    <div class="card reports-card">
-                        <div class="card-header">
-                            <h2 class="card-title">Recent Grades</h2>
-                        </div>
-                        <div class="card-body">
-                            <ul class="grade-list" id="recentGradesList">
-                                <li>No grades found.</li>
-                            </ul>
+                            <div class="grades-table-wrapper">
+                                <table class="grades-table" aria-describedby="recentGradesList">
+                                    <thead>
+                                        <tr><th>Subject</th><th>Score</th><th>Grade</th></tr>
+                                    </thead>
+                                    <tbody id="recentGradesList">
+                                        <tr><td colspan="3">No grades found.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
                             <a href="#" class="view-all-link">View all grades →</a>
                         </div>
                     </div>
-                </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Search Subject</h3>
+                        </div>
+                        <div class="card-body">
+                            <form class="subject-search-form" id="subjectSearchForm">
+                                <label for="subject-search" class="visually-hidden">Search for subject marks</label>
+                                <div class="search-input-group">
+                                    <input type="search" id="subject-search" placeholder="Enter subject name (e.g., Math, Science)" required>
+                                    <button type="submit" class="search-btn">Search Marks</button>
+                                </div>
+                                <div id="searchResults" class="search-results"></div>
+                            </form>
+                        </div>
+                    </div>
+                </section>
             </div>
         </section>
     </main>
@@ -85,6 +131,10 @@
     </footer>
 
     <script>
+    // Chart.js CDN (used only for rendering the small grades sparkline)
+    (function(){
+        var s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/chart.js'; s.async=true; document.head.appendChild(s);
+    })();
         document.addEventListener('DOMContentLoaded', async () => {
             
             const userEmail = localStorage.getItem('userEmail');
@@ -142,23 +192,67 @@
                     document.getElementById('welcome-title').textContent = `Welcome, ${studentData.name}!`;
 
                     function updateRecentGrades() {
-                        const gradesList = document.getElementById('recentGradesList');
-                        gradesList.innerHTML = '';
+                        const tbody = document.getElementById('recentGradesList');
+                        tbody.innerHTML = '';
                         const hasGrades = studentData.grades && Object.keys(studentData.grades).length > 0;
 
                         if (hasGrades) {
-                            const recentSubjects = Object.keys(studentData.grades).slice(-3);
-                            recentSubjects.forEach(subject => {
-                                const li = document.createElement('li');
-                                li.innerHTML = `<strong>${subject.charAt(0).toUpperCase() + subject.slice(1)}:</strong> ${studentData.grades[subject].score} (${studentData.grades[subject].grade})`;
-                                gradesList.appendChild(li);
+                            const entries = Object.keys(studentData.grades);
+                            // show latest up to 6
+                            const recent = entries.slice(-6);
+                            recent.reverse().forEach(subject => {
+                                const data = studentData.grades[subject];
+                                const tr = document.createElement('tr');
+                                const subj = subject.charAt(0).toUpperCase() + subject.slice(1);
+                                const score = data.score || '';
+                                const grade = data.grade || '';
+                                tr.innerHTML = `<td>${subj}</td><td>${score}</td><td><span class="grade-badge">${grade}</span></td>`;
+                                tbody.appendChild(tr);
                             });
                         } else {
-                            // Friendly, personalized empty-state message
-                            gradesList.innerHTML = `<li>No grades found for <strong>${studentData.name}</strong>. It looks like your teacher hasn't added marks yet.</li>`;
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `<td colspan="3">No grades found for <strong>${studentData.name}</strong>. It looks like your teacher hasn't added marks yet.</td>`;
+                            tbody.appendChild(tr);
                         }
+                        renderGradesChart();
                     }
                     updateRecentGrades();
+
+                    // Render a small chart if Chart.js is available and we have numeric scores
+                    function renderGradesChart() {
+                        const canvas = document.getElementById('gradesChart');
+                        if (!canvas) return;
+                        const scores = [];
+                        const labels = [];
+                        if (studentData.grades && Object.keys(studentData.grades).length > 0) {
+                            const keys = Object.keys(studentData.grades).slice(-6);
+                            keys.forEach(k => {
+                                const s = studentData.grades[k].score || '0';
+                                const n = parseInt(s.toString().replace('%','')) || 0;
+                                scores.push(n);
+                                labels.push(k.charAt(0).toUpperCase()+k.slice(1));
+                            });
+                        }
+
+                        // wait for Chart to load
+                        const tryRender = () => {
+                            if (typeof Chart === 'undefined') { setTimeout(tryRender, 120); return; }
+                            if (scores.length === 0) {
+                                // clear canvas
+                                const ctx = canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height); return;
+                            }
+                            canvas.style.display = 'block';
+                            const ctx = canvas.getContext('2d');
+                            // destroy previous chart if exists
+                            if (canvas._chart) { canvas._chart.destroy(); }
+                            canvas._chart = new Chart(ctx, {
+                                type: 'line',
+                                data: { labels: labels, datasets: [{ data: scores, borderColor: '#2c8c3a', backgroundColor: 'rgba(44,140,58,0.08)', tension:0.4, fill:true, pointRadius:2 }] },
+                                options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{display:false}} }
+                            });
+                        };
+                        tryRender();
+                    }
 
                     const subjectSearchForm = document.getElementById('subjectSearchForm');
                     if (subjectSearchForm) {
