@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Detailed Student Report - Eduwise</title>
+    <link rel="stylesheet" href="student_dashborad.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-content">
+      <div class="site-branding">
+        <a href="index.html" class="logo-link"><img src="logo.jpg" class="logo-img" alt="logo"><span class="logo-text">Eduwise</span></a>
+      </div>
+      <nav class="main-nav">
+        <ul class="nav-list">
+          <li><a href="student_dashboard.html" class="nav-link">Back to Dashboard</a></li>
+          <li><a href="#" id="printReport" class="nav-link">Print / Export</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="dashboard-page">
+    <div class="dashboard-grid">
+      <section class="panel panel-right" style="grid-column:1/-1;">
+        <div class="card">
+          <div class="card-header">
+            <div><h2 class="card-title" id="reportTitle">Detailed Performance Report</h2>
+              <p class="dashboard-subtitle" id="reportSubtitle">Comprehensive breakdown and improvement plan</p>
+            </div>
+            <div class="muted">Generated: <strong id="reportGenerated">-</strong></div>
+          </div>
+
+          <div class="card-body">
+            <div style="display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap">
+              <div style="flex:1 1 420px;min-width:320px">
+                <h4 style="margin:0 0 8px">Score by Subject</h4>
+                <canvas id="reportBarChart" style="width:100%;height:260px"></canvas>
+              </div>
+
+              <div style="flex:0 0 320px;min-width:260px">
+                <h4 style="margin:0 0 8px">Summary</h4>
+                <div id="summaryBox" style="background:transparent;padding:8px;border-radius:10px"></div>
+                <h4 style="margin-top:12px">Top Recommendations</h4>
+                <ol id="recommendations" style="margin-left:16px;color:var(--muted)"></ol>
+              </div>
+            </div>
+
+            <div style="margin-top:18px">
+              <h4>Action Plan</h4>
+              <ul id="actionPlan" style="color:var(--muted)"></ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">&copy; 2025 SPARS Eduwise</footer>
+
+  <script>
+    async function fetchProfile() {
+      const userEmail = localStorage.getItem('userEmail');
+      if (!userEmail) { alert('Not logged in'); location.href='login.html'; return null; }
+      try {
+        const resp = await fetch('/api/my-profile', {method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({email: userEmail})});
+        if (!resp.ok) throw new Error('Server error');
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message || 'No profile');
+        return data;
+      } catch (e) { console.error(e); alert('Unable to load profile.'); return null; }
+    }
+
+    function recommendForSubject(subject, score) {
+      const s = parseInt(score) || 0;
+      const rec = [];
+      if (s < 50) {
+        rec.push('Start with fundamentals: review basics and watch short concept videos.');
+        rec.push('Do guided practice: solve 20 small problems and check answers.');
+        rec.push('Attend a tutoring/mentoring session focused on fundamentals.');
+      } else if (s < 70) {
+        rec.push('Focus on problem-solving and past-year questions.');
+        rec.push('Identify 3 weak topics and practice focused exercises weekly.');
+      } else if (s < 85) {
+        rec.push('Increase timed practice and mock tests to build speed.');
+        rec.push('Work on application-level problems and sample interview questions.');
+      } else {
+        rec.push('Maintain consistency: weekly mock tests and peer discussions.');
+        rec.push('Teach the topic to someone else to deepen mastery.');
+      }
+      return rec;
+    }
+
+    function buildRecommendations(grades) {
+      const items = [];
+      const keys = Object.keys(grades || {});
+      // Sort by ascending score
+      keys.sort((a,b)=> (parseInt((grades[a]||{}).score||0)) - (parseInt((grades[b]||{}).score||0)));
+      const topWeak = keys.slice(0,3);
+      topWeak.forEach(s => {
+        const score = (grades[s]||{}).score||'0';
+        const human = s.charAt(0).toUpperCase()+s.slice(1);
+        items.push({subject:human, score, suggestions: recommendForSubject(s, score)});
+      });
+      return items;
+    }
+
+    function renderSummary(profile) {
+      const grades = profile.grades || {};
+      const keys = Object.keys(grades);
+      if (keys.length===0) return '<p>No grades available.</p>';
+      let total=0; keys.forEach(k=> total += parseInt((grades[k]||{}).score||0));
+      const avg = Math.round(total/keys.length);
+      const strengths = keys.filter(k=> parseInt((grades[k]||{}).score||0) >= 80).slice(0,3).map(s=> s.charAt(0).toUpperCase()+s.slice(1));
+      return `<p><strong>Average score:</strong> ${avg}%</p><p><strong>Strengths:</strong> ${strengths.join(', ') || 'None yet'}</p>`;
+    }
+
+    function renderActionPlan(recs) {
+      const ul = document.getElementById('actionPlan'); ul.innerHTML='';
+      recs.forEach((r, idx)=>{
+        const li = document.createElement('li');
+        li.style.marginBottom='8px';
+        li.textContent = `${r.subject} (${r.score}%): ${r.suggestions[0]}`;
+        ul.appendChild(li);
+      });
+    }
+
+    function renderRecommendationsList(recs) {
+      const ol = document.getElementById('recommendations'); ol.innerHTML='';
+      recs.forEach(r=>{
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>${r.subject} — ${r.score}%</strong>: ${r.suggestions[0]}`;
+        ol.appendChild(li);
+      });
+    }
+
+    function renderBarChart(grades) {
+      const keys = Object.keys(grades||{});
+      const labels = keys.map(k=> k.charAt(0).toUpperCase()+k.slice(1));
+      const data = keys.map(k=> parseInt((grades[k]||{}).score||0));
+      const ctx = document.getElementById('reportBarChart').getContext('2d');
+      if (window._reportChart) window._reportChart.destroy();
+      window._reportChart = new Chart(ctx, {
+        type:'bar',
+        data:{ labels, datasets:[{label:'Score %', data, backgroundColor: labels.map(l=> 'rgba(6,182,212,0.18)'), borderColor: 'rgba(6,182,212,0.9)', borderWidth:1 }] },
+        options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,max:100}}}
+      });
+    }
+
+    (async function init(){
+      const profile = await fetchProfile();
+      if (!profile) return;
+      document.getElementById('reportGenerated').textContent = new Date().toLocaleString();
+      document.getElementById('reportTitle').textContent = `Performance Report — ${profile.fullName || profile.full_name || profile.name || profile.fullname || ''}`;
+      document.getElementById('reportSubtitle').textContent = 'Detailed breakdown with personalized improvement plan';
+      document.getElementById('summaryBox').innerHTML = renderSummary(profile);
+      const recs = buildRecommendations(profile.grades || {});
+      renderRecommendationsList(recs);
+      renderActionPlan(recs);
+      renderBarChart(profile.grades || {});
+
+      document.getElementById('printReport').addEventListener('click', (e)=>{ e.preventDefault(); window.print(); });
+    })();
+  </script>
+</body>
+</html>
