@@ -1,0 +1,13 @@
+:root{
+  --primary: #2b6cb0;
+  --bg: #fff;
+  --muted: #666;
+}
+body{ font-family: Inter, system-ui, Arial, sans-serif; margin:0; background:var(--bg); color:#111 }
+.topnav{ display:flex; gap:12px; padding:12px; background:#f5f7fb }
+.hero{ padding:40px; text-align:center }
+.login-box{ max-width:420px; margin:32px auto; padding:18px; border-radius:8px; background:#fff; box-shadow:0 6px 18px rgba(0,0,0,0.06) }
+.login-box input{ display:block; width:100%; padding:10px; margin:8px 0 }
+.login-box button{ background:var(--primary); color:#fff; padding:10px 14px; border:none; border-radius:6px }
+.message{ color:var(--muted) }
+.student-dashboard, .report{ max-width:900px; margin:24px auto; padding:16px }

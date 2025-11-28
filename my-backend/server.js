@@ -637,7 +637,7 @@ try {
 // Helper: get user by email (Supabase first, fallback to local JSON)
 async function getUserByEmail(email) {
     if (!email) return null;
-    const lookup = email.toString().toLowerCase();
+    const lookup = email.toString().trim().toLowerCase();
 
     if (supabase) {
         const { data, error } = await supabase.from('users').select('*').eq('email', lookup).limit(1);
@@ -657,7 +657,7 @@ async function getUserByEmail(email) {
 
 // Helper: insert or update user (Supabase first, fallback to local JSON)
 async function upsertUser(record) {
-    const emailKey = (record.email || '').toString().toLowerCase();
+    const emailKey = (record.email || '').toString().trim().toLowerCase();
     if (supabase) {
         const { data, error } = await supabase.from('users').upsert([record]).select();
         if (error) {
@@ -926,7 +926,7 @@ app.post('/api/teacher-add-student', (req, res) => {
 // STEP 1: Send Verification
 app.post('/api/send-verification', async (req, res) => {
     const { email, fullName, schoolId, userType, phoneNumber, skipEmail } = req.body;
-    const key = (email || '').toString().toLowerCase();
+    const key = (email || '').toString().trim().toLowerCase();
 
     try {
         if (!supabase) {
@@ -970,16 +970,48 @@ app.post('/api/send-verification', async (req, res) => {
 // STEP 2: Verify Code
 app.post('/api/verify-code', (req, res) => {
     const { email, code } = req.body;
-    const key = (email || '').toString().toLowerCase();
-    const tempUser = tempUserDatabase[key];
-    
-    if (!tempUser) return res.json({ success: false, message: 'Error. Try again.' });
+    const rawKey = (email || '').toString();
+    const key = rawKey.trim().toLowerCase();
+
+    console.log('verify-code called with:', { email: rawKey, code });
+    console.log('Current tempUserDatabase keys:', Object.keys(tempUserDatabase));
+
+    let tempUser = tempUserDatabase[key];
+
+    // Fallback: try to find a matching key ignoring case/whitespace if direct lookup fails
+    if (!tempUser) {
+        const foundKey = Object.keys(tempUserDatabase).find(k => k.toLowerCase() === key || k.replace(/\s+/g,'').toLowerCase() === key.replace(/\s+/g,'').toLowerCase());
+        if (foundKey) {
+            console.log('verify-code: resolved fallback key ->', foundKey);
+            tempUser = tempUserDatabase[foundKey];
+        }
+    }
+
+    if (!tempUser) {
+        console.warn('verify-code: no tempUser found for', key);
+        return res.json({ success: false, message: 'Error. Try again.' });
+    }
 
     if ((code === 'INSTANT_VERIFY_BY_TEACHER' && tempUser.verified === true) || tempUser.code === code) {
-        tempUserDatabase[key].verified = true;
+        // mark verified on the actual stored key (ensure we mutate the exact entry)
+        const actualKey = Object.keys(tempUserDatabase).find(k => tempUserDatabase[k] === tempUser) || key;
+        tempUserDatabase[actualKey].verified = true;
+        console.log('verify-code: verified user for', actualKey);
         return res.json({ success: true, message: 'Email verified!' });
     }
+    console.warn('verify-code: invalid code for', key, 'expected:', tempUser.code);
     return res.json({ success: false, message: 'Invalid code.' });
+});
+
+// Debug route to inspect tempUserDatabase
+app.get('/api/debug-temp-users', (req, res) => {
+    try {
+        const debug = Object.keys(tempUserDatabase).map(k => ({ key: k, entry: tempUserDatabase[k] }));
+        return res.json({ success: true, tempUsers: debug });
+    } catch (e) {
+        console.error('debug-temp-users error:', e);
+        return res.status(500).json({ success: false, message: 'Failed to read temp users' });
+    }
 });
 
 // STEP 3: Create User
@@ -988,7 +1020,7 @@ app.post('/api/create-user', async (req, res) => {
     
     console.log('Create user attempt received!');
     const { email, password } = req.body;
-    const key = (email || '').toString().toLowerCase();
+    const key = (email || '').toString().trim().toLowerCase();
     const tempUser = tempUserDatabase[key];
     
     if (!tempUser || !tempUser.verified) {
