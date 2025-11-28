@@ -703,36 +703,35 @@ app.post('/api/verify-code', (req, res) => {
 app.post('/api/create-user', async (req, res) => {
     console.log('Create user attempt received!');
     const { email, password } = req.body;
-    const tempUser = tempUserDatabase[email];
-    if (!tempUser || !tempUser.verified) {
-        return res.json({ success: false, message: 'Verification required.' });
-    }
+	const tempUser = tempUserDatabase[email];
+	if (!tempUser || !tempUser.verified) {
+		console.warn('Create user blocked: tempUser missing or not verified for', email);
+		return res.json({ success: false, message: 'Verification required.' });
+	}
 
-    const isApproved = (tempUser.userType === 'student');
+	// Ensure user_type is set; default to 'student' when missing
+	const userType = (tempUser.userType || tempUser.user_type || 'student').toString().toLowerCase();
+	const isApproved = (userType === 'student');
 	const record = {
-		email,
+		email: (email || '').toString().toLowerCase(),
 		password: password,
-		full_name: tempUser.fullName,
-		user_type: tempUser.userType,
-		school_id: tempUser.schoolId,
-		phone_number: tempUser.phoneNumber,
+		full_name: tempUser.fullName || tempUser.full_name || '',
+		user_type: userType,
+		school_id: tempUser.schoolId || tempUser.school_id || null,
+		phone_number: tempUser.phoneNumber || tempUser.phone_number || null,
 		grades: {},
 		interview_report: "",
 		approved: isApproved
 	};
 
 	try {
-		if (supabase) {
-			await upsertUser(record);
-			console.log('Upserted user into Supabase:', email);
-		} else {
-			// fallback to in-memory
-			await upsertUser(record);
-			console.log("WARNING: Data updated in memory, but not saved to file (read-only file system).", email);
-		}
+		await upsertUser(record);
+		if (supabase) console.log('Upserted user into Supabase:', email);
+		else console.log('User stored in memory (no Supabase):', email);
 	} catch (err) {
-		console.error('Create user error:', err);
-		return res.json({ success: false, message: 'Failed to create user.' });
+		console.error('Create user error (detailed):', err && err.message ? err.message : err);
+		// Return a slightly more informative message for debugging (safe for dev). In production, avoid leaking DB internals.
+		return res.json({ success: false, message: 'Failed to create user.', error: (err && err.message) || String(err) });
 	}
 
 	if (tempUser.userType === 'teacher') {
