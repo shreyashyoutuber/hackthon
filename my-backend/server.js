@@ -654,49 +654,56 @@ function saveDatabase() {
 
 // STEP 1: Send Verification
 app.post('/api/send-verification', async (req, res) => {
-    const { email, fullName, schoolId, userType, phoneNumber, skipEmail } = req.body;
-    if (mockUserDatabase[email]) {
-        return res.json({ success: false, message: 'This email is already registered.' });
-  _ }
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    tempUserDatabase[email] = { fullName, schoolId, userType, phoneNumber, code: verificationCode, verified: false };
-    console.log(`Temp user stored for ${email}. Code: ${verificationCode}`); // Log for debugging
+	const { email, fullName, schoolId, userType, phoneNumber, skipEmail } = req.body;
+	const key = (email || '').toString().toLowerCase();
+	try {
+		// check existing user in supabase or fallback
+		const existing = await getUserByEmail(email);
+		if (existing) return res.json({ success: false, message: 'This email is already registered.' });
+	} catch (e) {
+		console.error('Error checking existing user for verification:', e && e.message ? e.message : e);
+	}
+
+	const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+	tempUserDatabase[key] = { fullName, schoolId, userType, phoneNumber, code: verificationCode, verified: false };
+	console.log(`Temp user stored for ${key}. Code: ${verificationCode}`);
+	console.log('Temp DB keys now:', Object.keys(tempUserDatabase));
 
 	if (skipEmail) {
-        tempUserDatabase[email].verified = true;
-        res.json({ success: true, message: 'Skipping email.', code: verificationCode });
-    } else {
-        const mailOptions = {
-            from: 'shreyashmahagaon@gmail.com',
-            to: email,
-            subject: 'Verify Your EDUWISE Account',
-            html: `Hi ${fullName},<br><br>Your verification code is: <h2>${verificationCode}</h2>`
-        };
-		try {
-			await transporter.sendMail(mailOptions);
-			res.json({ success: true, message: 'Verification email sent.' });
-		} catch (error) {
-			console.error("Error sending email:", error); // Log the actual error
-			res.json({ success: false, message: 'Error sending verification email.' });
-		}
-    }
+		tempUserDatabase[key].verified = true;
+		return res.json({ success: true, message: 'Skipping email.', code: verificationCode });
+	}
+
+	const mailOptions = {
+		from: 'shreyashmahagaon@gmail.com',
+		to: email,
+		subject: 'Verify Your EDUWISE Account',
+		html: `Hi ${fullName},<br><br>Your verification code is: <h2>${verificationCode}</h2>`
+	};
+	try {
+		await transporter.sendMail(mailOptions);
+		return res.json({ success: true, message: 'Verification email sent.' });
+	} catch (error) {
+		console.error('Error sending email:', error);
+		return res.json({ success: false, message: 'Error sending verification email.' });
+	}
 });
 
 // STEP 2: Verify Code
 app.post('/api/verify-code', (req, res) => {
-    const { email, code } = req.body;
-    const tempUser = tempUserDatabase[email];
-    console.log(`Verifying code for ${email}. Code entered: ${code}`); // Log for debugging
-    console.log("Current temp database:", tempUserDatabase); // Log for debugging
+	const { email, code } = req.body;
+	const key = (email || '').toString().toLowerCase();
+	const tempUser = tempUserDatabase[key];
+	console.log(`Verifying code for ${key}. Code entered: ${code}`);
+	console.log('Current temp database keys:', Object.keys(tempUserDatabase));
 
-    if (!tempUser) return res.json({ success: false, message: 'Error. Try again.' });
+	if (!tempUser) return res.json({ success: false, message: 'Error. Try again.' });
 
-    if ((code === 'INSTANT_VERIFY_BY_TEACHER' && tempUser.verified === true) || tempUser.code === code) {
-        tempUserDatabase[email].verified = true;
-        res.json({ success: true, message: 'Email verified!' });
-    } else {
-        res.json({ success: false, message: 'Invalid code.' });
-    }
+	if ((code === 'INSTANT_VERIFY_BY_TEACHER' && tempUser.verified === true) || tempUser.code === code) {
+		tempUserDatabase[key].verified = true;
+		return res.json({ success: true, message: 'Email verified!' });
+	}
+	return res.json({ success: false, message: 'Invalid code.' });
 });
 
 // STEP 3: Create User
