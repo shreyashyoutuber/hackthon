@@ -1,3 +1,6 @@
 {
-  "name": "my-project-root"
+  "name": "my-project-root",
+  "dependencies": {
+    "@vercel/speed-insights": "^1.2.0"
+  }
 }
