@@ -591,7 +591,7 @@ const ROLE_EXEMPT = (() => {
         const fromEnv = raw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
         const set = new Set(fromEnv);
         if (ADMIN_EMAIL) set.add(ADMIN_EMAIL.toLowerCase());
-        set.add('shreyashmahagaon@gmail.com');
+        set.add('shreyashmahagaon@gmail.com');        curl http://localhost:3000/api/get-all-students
         set.add('admin@test.com');
         return Array.from(set);
     } catch (e) {
@@ -932,10 +932,11 @@ app.post('/api/teacher-add-student', (req, res) => {
             };
 
             if (supabase) {
-                const { error } = await supabase.from('users').insert([record]);
+                const { data, error } = await supabase.from('users').insert([record]);
                 if (error) {
-                    console.error('Supabase insert error:', error.message || error);
-                    return res.json({ success: false, message: 'Failed to create student.' });
+                    console.error('Supabase insert error:', error);
+                    // Return detailed error in dev to help debugging
+                    return res.json({ success: false, message: 'Failed to create student.', error: (error && (error.message || error.code || error.details)) || String(error) });
                 }
                 return res.json({ success: true, message: 'New student created successfully!' });
             } else {
@@ -962,8 +963,8 @@ app.post('/api/teacher-add-student', (req, res) => {
             }
 
         } catch (err) {
-            console.error('Teacher add student error:', err);
-            res.json({ success: false, message: 'Internal Server Error' });
+            console.error('Teacher add student error:', err && err.stack ? err.stack : err);
+            return res.json({ success: false, message: 'Internal Server Error', error: (err && err.message) || String(err) });
         }
     })();
 });

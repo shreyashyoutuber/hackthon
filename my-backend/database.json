@@ -1,93 +1,68 @@
 {
   "admin@test.com": {
     "password": "Admin@88",
-    "fullName": "Admin User",
-    "userType": "both",
-    "schoolId": "T-001",
-    "phoneNumber": "1234567890",
-    "interviewReport": "",
+    "full_name": "Admin User",
+    "user_type": "both",
+    "school_id": "T-001",
+    "phone_number": "1234567890",
+    "interview_report": "",
     "approved": true
   },
   "2400030189@kluniversity.in": {
     "password": "12345",
-    "fullName": "Rahul Sharma",
-    "userType": "student",
-    "schoolId": "2400030189",
-    "phoneNumber": "0987654321",
+    "full_name": "Rahul Sharma",
+    "user_type": "student",
+    "school_id": "2400030189",
+    "phone_number": "0987654321",
     "grades": {
-      "math": {
-        "score": "88%",
-        "grade": "B+"
-      },
-      "science": {
-        "score": "92%",
-        "grade": "A"
-      },
-      "history": {
-        "score": "85%",
-        "grade": "B"
-      },
-      "english": {
-        "score": "78%",
-        "grade": "C+"
-      },
-      "programming": {
-        "score": "70%",
-        "grade": "C-"
-      },
-      "physics": {
-        "score": "65%",
-        "grade": "D+"
-      },
-      "game": {
-        "score": "90",
-        "grade": "A"
-      }
+      "math": { "score": "88", "grade": "B+" },
+      "science": { "score": "92", "grade": "A" },
+      "history": { "score": "85", "grade": "B" },
+      "english": { "score": "78", "grade": "C+" },
+      "programming": { "score": "70", "grade": "C-" },
+      "physics": { "score": "65", "grade": "D+" }
     },
-    "interviewReport": "Needs to improve on core programming concepts."
+    "interview_report": "Needs to improve on core programming concepts.",
+    "approved": true
   },
-  "Shreyashmahagaon@gmail.com": {
+  "shreyashmahagaon@gmail.com": {
     "password": "Shreyash@88",
-    "fullName": "shreyash",
-    "schoolId": "2400030189",
-    "userType": "both",
-    "phoneNumber": "06360612006",
-    "grades": {
-      "5556": {
-        "score": "55",
-        "grade": "F"
-      },
-      "os": {
-        "score": "88",
-        "grade": "B"
-      },
-      "programming": {
-        "score": "85",
-        "grade": "p"
-      }
-    },
-    "interviewReport": "good\n\n"
+    "full_name": "Shreyash Mahagaon",
+    "user_type": "both",
+    "school_id": "2400030189",
+    "phone_number": "06360612006",
+    "grades": { "os": { "score": "88", "grade": "B" }, "programming": { "score": "85", "grade": "B" } },
+    "interview_report": "Solid understanding of OS and programming basics.",
+    "approved": true
   },
   "pruthvimahagaon@gmail.com": {
     "password": "12345678",
-    "fullName": "pruthvi",
-    "schoolId": "200",
-    "userType": "student",
-    "phoneNumber": "6360612005",
-    "grades": {
-      "ios": {
-        "score": "88%",
-        "grade": "A+"
-      },
-      "c": {
-        "score": "90%",
-        "grade": "P"
-      },
-      "programming": {
-        "score": "90%",
-        "grade": "A"
-      }
-    },
-    "interviewReport": "good best done keep it up"
+    "full_name": "Pruthvi Mahagaon",
+    "user_type": "student",
+    "school_id": "200",
+    "phone_number": "6360612005",
+    "grades": { "ios": { "score": "88", "grade": "A+" }, "c": { "score": "90", "grade": "A" }, "programming": { "score": "90", "grade": "A" } },
+    "interview_report": "Consistent high performance.",
+    "approved": true
+  },
+  "demo.student1@example.com": {
+    "password": "Temp1234",
+    "full_name": "Demo Student One",
+    "user_type": "student",
+    "school_id": "DS-001",
+    "phone_number": "9990001111",
+    "grades": { "math": { "score": "91", "grade": "A" }, "programming": { "score": "87", "grade": "B+" } },
+    "interview_report": "Strong candidate for technical roles.",
+    "approved": true
+  },
+  "demo.student2@example.com": {
+    "password": "Temp1234",
+    "full_name": "Demo Student Two",
+    "user_type": "student",
+    "school_id": "DS-002",
+    "phone_number": "9990002222",
+    "grades": { "math": { "score": "72", "grade": "C" }, "programming": { "score": "68", "grade": "D+" } },
+    "interview_report": "Needs improvement in programming fundamentals.",
+    "approved": true
   }
 }
