@@ -580,8 +580,11 @@ const nodemailer = require('nodemailer');
 const app = express();
 
 // --- CONFIGURATION ---
-const ADMIN_EMAIL = 'shreyashmahagaon@gmail.com'; 
-const WEBSITE_URL = 'https://eduwise-six.vercel.app'; // <-- Use your live URL
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'shreyashmahagaon@gmail.com';
+const WEBSITE_URL = process.env.WEBSITE_URL || 'https://eduwise1.vercel.app'; // default to your frontend domain
+
+// Allowed origins for CORS (comma separated list). Include localhost for local testing.
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || `${WEBSITE_URL},http://localhost:3000,http://127.0.0.1:3000`).split(',').map(s => s.trim()).filter(Boolean);
 
 // ROLE_EXEMPT: comma-separated env var (server-only). Always include ADMIN_EMAIL
 // and a fallback 'shreyashmahagaon@gmail.com' so those accounts can access both portals.
@@ -591,7 +594,8 @@ const ROLE_EXEMPT = (() => {
         const fromEnv = raw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
         const set = new Set(fromEnv);
         if (ADMIN_EMAIL) set.add(ADMIN_EMAIL.toLowerCase());
-        set.add('shreyashmahagaon@gmail.com');        curl http://localhost:3000/api/get-all-students
+        set.add('shreyashmahagaon@gmail.com');   
+      http://localhost:3000/api/get-all-students
         set.add('admin@test.com');
         return Array.from(set);
     } catch (e) {
@@ -725,7 +729,18 @@ const transporter = nodemailer.createTransport({
 
 // 5. Add the "middleware"
 const path = require('path');
-app.use(cors());
+// Configure CORS to allow only configured origins (helps when frontend is hosted separately)
+app.use(cors({
+    origin: function(origin, callback) {
+        // allow requests with no origin (e.g., curl, mobile apps)
+        if (!origin) return callback(null, true);
+        if (ALLOWED_ORIGINS.indexOf(origin) !== -1) {
+            return callback(null, true);
+        }
+        console.warn('Blocked CORS request from origin:', origin);
+        return callback(new Error('Not allowed by CORS'));
+    }
+}));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '..'))); // Serves HTML/CSS from root
 app.use((req, res, next) => {
@@ -1270,6 +1285,8 @@ if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {
         console.log(`\n--- SERVER IS RUNNING FOR LOCAL TESTING ---`);
         console.log(`--- http://localhost:${PORT} ---`);
+        console.log('WEBSITE_URL:', WEBSITE_URL);
+        console.log('ALLOWED_ORIGINS:', ALLOWED_ORIGINS);
     });
 }
 
