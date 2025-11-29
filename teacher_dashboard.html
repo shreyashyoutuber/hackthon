@@ -774,14 +774,17 @@
 
     // Init on DOM ready
     document.addEventListener('DOMContentLoaded', ()=>{
-      // Role-based UI: hide add controls for non-teachers/admins
+      // Role-based UI: hide add controls for non-teachers/admins — but always show on teacher dashboard page
       const userEmail = localStorage.getItem('userEmail') || '';
       const currentUser = getUsersFromLocal().find(u => (u.email||'').toLowerCase() === (userEmail||'').toLowerCase());
       const role = (currentUser && currentUser.userType) ? (currentUser.userType||'').toLowerCase() : '';
-      if(!(role === 'teacher' || role === 'admin')){
+      const isTeacherPage = (window.location.pathname || '').toLowerCase().includes('teacher_dashboard.html') || (window.location.href || '').toLowerCase().includes('teacher_dashboard.html');
+      if(!(role === 'teacher' || role === 'admin') && !isTeacherPage){
         const addBtn = document.getElementById('addStudentBtn'); if(addBtn) addBtn.style.display = 'none';
         const sideAdd = document.getElementById('sidebarAddStudent'); if(sideAdd) sideAdd.style.display = 'none';
       }
+      // Ensure quick header add button is visible on the teacher dashboard
+      if(isTeacherPage){ const quickAdd = document.getElementById('quickAddStudentBtn'); if(quickAdd) quickAdd.style.display = 'inline-block'; }
 
       loadDashboardData();
       document.getElementById('generateReportBtn').addEventListener('click', ()=>{
