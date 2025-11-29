@@ -49,7 +49,6 @@
           </div>
           <div class="header-right">
             <span id="teacherInfo">Welcome, <strong id="teacherName">Teacher</strong></span>
-            <button id="quickAddStudentBtn" class="action-btn add-btn" title="Add Student" style="margin-left:8px;padding:6px 10px;font-size:14px">+ Add Student</button>
             <button id="logoutBtn" class="btn-small btn-ghost" style="margin-left:8px">Logout</button>
           </div>
         </div>
@@ -361,14 +360,7 @@
 
     document.getElementById('logoutBtn').addEventListener('click', ()=>{ localStorage.removeItem('userEmail'); window.location.href='login.html'; });
 
-    // Quick header add-student button (always available) — open add modal and reset form
-    const quickAdd = document.getElementById('quickAddStudentBtn');
-    if(quickAdd){
-      quickAdd.addEventListener('click', ()=>{
-        try{ document.getElementById('addStudentForm').reset(); document.getElementById('addStudentError').style.display='none'; }catch(e){}
-        document.getElementById('addStudentModal').style.display='flex';
-      });
-    }
+    // (header quick-add removed) — Add Student is available via page controls and sidebar
 
     // Add Student (local)
     document.getElementById('addStudentForm').addEventListener('submit', async function(e){
@@ -783,8 +775,7 @@
         const addBtn = document.getElementById('addStudentBtn'); if(addBtn) addBtn.style.display = 'none';
         const sideAdd = document.getElementById('sidebarAddStudent'); if(sideAdd) sideAdd.style.display = 'none';
       }
-      // Ensure quick header add button is visible on the teacher dashboard
-      if(isTeacherPage){ const quickAdd = document.getElementById('quickAddStudentBtn'); if(quickAdd) quickAdd.style.display = 'inline-block'; }
+      // No header quick-add button — page has its own add controls
 
       loadDashboardData();
       document.getElementById('generateReportBtn').addEventListener('click', ()=>{
