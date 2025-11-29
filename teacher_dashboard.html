@@ -268,6 +268,9 @@
             }catch(err){ console.error('ensureDemoUsers error', err); }
         }
 
+        // Helper to read users from localStorage
+        function getUsersFromLocal(){ try { return JSON.parse(localStorage.getItem('users')||'[]'); } catch(e){ return []; } }
+
         // This will hold our student data from the server
         let students = []; 
         let analyticsChartInstance = null; // This will hold our chart object
@@ -368,24 +371,17 @@
             printReportBtn.addEventListener('click', () => window.print() );
         });
 
-        // --- Function to load all data from the server ---
-        async function loadDashboardData() {
+        // --- Function to load all data from localStorage ---
+        function loadDashboardData() {
             try {
-                // const response = await fetch('http://localhost:3000/get-all-students');
-                const response = await fetch('/api/get-all-students');
-                const data = await response.json();
-
-                if (data.success) {
-                    students = data.students; 
-                    renderCards(students); 
-                    updateSummaryCards(); 
-                } else {
-                    alert('Could not load student data.');
-                }
-            } catch (error) {
-                console.error('Error fetching students:', error);
-                alert('Could not connect to server.');
-            }
+                const all = getUsersFromLocal();
+                students = all.filter(u => (u.userType||'').toLowerCase() === 'student').map((u,i)=>({ id: u.schoolId||('s'+(i+1)), name: u.fullName||u.name||u.email, email: u.email||'', grades: u.grades||{}, interviewReport: u.interviewReport||'' }));
+                renderCards(students);
+                updateSummaryCards();
+                // teacher info
+                const email = localStorage.getItem('userEmail'); const me = all.find(x=>x.email===email);
+                document.getElementById('teacherName').textContent = me ? (me.fullName||me.email) : 'Teacher';
+            } catch(err){ console.error('loadDashboardData error', err); }
         }
 
         // --- Helper function (no change) ---
@@ -539,37 +535,29 @@
         
         // --- Add Student Modal Logic (no change) ---
         addCloseBtn.addEventListener('click', () => addStudentModal.style.display = 'none');
-        addStudentForm.addEventListener('submit', async function(e) {
+        addStudentForm.addEventListener('submit', function(e) {
             e.preventDefault();
             addStudentError.style.display = "none";
-            const studentData = {
-                fullName: document.getElementById('addFullName').value,
-                email: document.getElementById('addEmail').value,
-                schoolId: document.getElementById('addSchoolId').value,
-                phoneNumber: document.getElementById('addPhone').value,
-                password: document.getElementById('addPassword').value
+            const student = {
+                fullName: (document.getElementById('addFullName').value||'').trim(),
+                email: ((document.getElementById('addEmail').value||'').trim()||'').toLowerCase(),
+                schoolId: (document.getElementById('addSchoolId').value||'').trim(),
+                phoneNumber: (document.getElementById('addPhone').value||'').trim(),
+                password: document.getElementById('addPassword').value||'',
+                userType: 'student',
+                grades: {},
+                interviewReport: ''
             };
-            try {
-                // const response = await fetch('http://localhost:3000/teacher-add-student', {
-                const response = await fetch('/api/teacher-add-student', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(studentData)
-                });
-                const data = await response.json();
-                if (data.success) {
-                    alert('New student created successfully!');
-                    addStudentModal.style.display = 'none';
-                    loadDashboardData(); 
-                } else {
-                    addStudentError.textContent = data.message;
-                    addStudentError.style.display = "block";
-                }
-            } catch(error) {
-                console.error("Error adding student:", error);
-                addStudentError.textContent = "Could not connect to server.";
-                addStudentError.style.display = "block";
-            }
+            if(!student.fullName || !student.email){ addStudentError.textContent = 'Name and email required'; addStudentError.style.display='block'; return; }
+            try{
+                const users = getUsersFromLocal();
+                if(users.find(u=> (u.email||'').toLowerCase() === student.email)){ addStudentError.textContent = 'User exists'; addStudentError.style.display='block'; return; }
+                users.push(student);
+                localStorage.setItem('users', JSON.stringify(users));
+                showToast('Student added locally', 'success');
+                addStudentModal.style.display = 'none';
+                loadDashboardData();
+            }catch(err){ console.error('addStudent error', err); addStudentError.textContent='Failed to add student'; addStudentError.style.display='block'; }
         });
 
 
@@ -653,58 +641,36 @@
         });
 
         // --- Save changes (no change) ---
-        editForm.addEventListener('submit', async function(e) {
-            // (This function is correct, no changes)
+        editForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            const studentEmail = document.getElementById('editStudentId').value;
-            const customReport = interviewReportInput.value;
+            const originalEmail = document.getElementById('editStudentId').value || '';
+            const customReport = interviewReportInput.value || '';
             const newGrades = {};
             const scoreInputs = document.querySelectorAll('#dynamicSubjectInputs input[data-subject-score]');
             const gradeInputs = document.querySelectorAll('#dynamicSubjectInputs input[data-subject-grade]');
             const nameInputs = document.querySelectorAll('#dynamicSubjectInputs input.subject-name-input');
-            
-            for(let i = 0; i < scoreInputs.length; i++) {
-                const subject = (nameInputs[i].dataset.subjectName || nameInputs[i].value.trim().toLowerCase());
-                const score = scoreInputs[i].value;
-                let grade = gradeInputs[i].value;
-                
-                if(subject && score && !grade) {
-                     const scoreNum = parseInt(score);
-                     if (scoreNum >= 90) grade = 'A';
-                     else if (scoreNum >= 80) grade = 'B';
-                     else if (scoreNum >= 70) grade = 'C';
-                     else if (scoreNum >= 60) grade = 'D';
-                     else grade = 'F';
-                     gradeInputs[i].value = grade;
-                }
-                
-                if(subject && score && grade) {
-                    newGrades[subject] = { score, grade };
+            for(let i = 0; i < scoreInputs.length; i++){
+                const subj = (nameInputs[i].dataset.subjectName || nameInputs[i].value.trim()).toLowerCase();
+                const score = scoreInputs[i].value.trim();
+                let grade = gradeInputs[i].value.trim();
+                if(subj && score){
+                    if(!grade){ const sc = parseInt(score); if(sc>=90) grade='A'; else if(sc>=80) grade='B'; else if(sc>=70) grade='C'; else if(sc>=60) grade='D'; else grade='F'; gradeInputs[i].value = grade; }
+                    newGrades[subj] = { score: score, grade: grade };
                 }
             }
-            try {
-                // const response = await fetch('http://localhost:3000/update-student-data', {
-                const response = await fetch('/api/update-student-data', { // <-- CORRECT URL
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email: studentEmail,
-                        newGrades: newGrades,
-                        newInterviewReport: customReport
-                    })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    alert('Changes saved!');
-                    editModal.style.display = 'none';
-                    loadDashboardData(); 
-                } else {
-                    alert(`Error: ${data.message}`);
-                }
-            } catch (error) {
-                console.error('Error saving changes:', error);
-                alert('Could not connect to server to save changes.');
-            }
+            try{
+                const users = getUsersFromLocal();
+                const idx = users.findIndex(u=> (u.email||'').toLowerCase() === (originalEmail||'').toLowerCase());
+                if(idx===-1){ alert('Student not found'); return; }
+                // Prevent duplicate email if changed (email editing not present in modal here)
+                // Update fields
+                users[idx].grades = Object.assign({}, users[idx].grades||{}, newGrades);
+                users[idx].interviewReport = customReport || users[idx].interviewReport || '';
+                localStorage.setItem('users', JSON.stringify(users));
+                alert('Changes saved!');
+                editModal.style.display = 'none';
+                loadDashboardData();
+            }catch(err){ console.error('save edit error', err); alert('Failed to save changes'); }
         });
 
         // --- Link sidebar "Add Grade" button ---
