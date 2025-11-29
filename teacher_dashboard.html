@@ -1,899 +1,817 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher Dashboard - SPARS</title>
-    <link rel="stylesheet" href="teacher_dashboard.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Teacher Dashboard - Eduwise (Local)</title>
+  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="shared/buttons.css">
+  <link rel="stylesheet" href="teacher.css">
+  <link rel="stylesheet" href="print.css" media="print">
+  <!-- buttons-control removed per user request -->
+  <!-- Local-only teacher dashboard: no external fonts or CDNs -->
 </head>
 <body>
+  <div class="dashboard-wrapper">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="logo-link">
+          <img src="logo.jpg" alt="Eduwise Logo" class="logo-img">
+          <span>Eduwise</span>
+        </a>
+      </div>
+      <nav class="sidebar-nav">
+        <h3 class="menu-heading">Main</h3>
+        <ul class="sidebar-menu">
+          <li class="menu-item"><a href="teacher_dashboard.html">Dashboard</a></li>
+        </ul>
+        <h3 class="menu-heading">Forms</h3>
+        <ul class="sidebar-menu">
+          <li class="menu-item"><button id="sidebarAddStudent" class="action-btn btn-small btn-ghost">Add Student</button></li>
+          <li class="menu-item"><button id="sidebarAddGrade" class="action-btn btn-small btn-ghost">Add Grade</button></li>
+          <li class="menu-item"><button id="sidebarGenerateReport" class="action-btn btn-small btn-ghost">Generate Report</button></li>
+        </ul>
+        <h3 class="menu-heading">Views</h3>
+        <ul class="sidebar-menu">
+          <li class="menu-item"><a href="#">All Students</a></li>
+          <li class="menu-item"><button id="sidebarStudentPerformance" class="action-btn btn-small btn-ghost">Student Performance</button></li>
+          <li class="menu-item"><button id="sidebarInterviewReport" class="action-btn btn-small btn-ghost">Interview Reports</button></li>
+        </ul>
+      </nav>
+    </aside>
 
-    <div class="dashboard-wrapper">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <a href="index.html" class="logo-link">
-                    <img src="logo.jpg" alt="Eduwise Logo" class="logo-img">
-                    <span>Eduwise</span>
-                </a>
+    <div class="main-content-area">
+      <header class="main-header">
+        <div class="main-header-content">
+          <div class="header-left">
+            <h1 class="page-title">Teacher Dashboard</h1>
+          </div>
+          <div class="header-right">
+            <span id="teacherInfo">Welcome, <strong id="teacherName">Teacher</strong></span>
+            <button id="logoutBtn" class="btn-small btn-ghost" style="margin-left:8px">Logout</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="dashboard-main">
+        <div class="summary-grid">
+          <div class="summary-card bg-blue">
+            <div class="summary-icon">👥</div>
+            <div class="summary-details"><span class="summary-value" id="totalStudentsCount">0</span><span class="summary-label">Total Students</span></div>
+          </div>
+          <div class="summary-card bg-green">
+            <div class="summary-icon">📄</div>
+            <div class="summary-details"><span class="summary-value" id="totalReportsCount">0</span><span class="summary-label">Reports Generated</span></div>
+          </div>
+          <div class="summary-card bg-primary">
+            <div class="summary-icon">⭐</div>
+            <div class="summary-details"><span class="summary-value" id="recommendedCount">0</span><span class="summary-label">Recommended for Interview</span></div>
+          </div>
+          <div class="summary-card bg-yellow">
+            <div class="summary-icon">⚠️</div>
+            <div class="summary-details"><span class="summary-value" id="cautionCount">0</span><span class="summary-label">Needs Improvement</span></div>
+          </div>
+        </div>
+
+        <div class="dashboard-controls">
+          <button id="addStudentBtn" class="action-btn add-btn">Add New Student</button>
+          <button id="generateReportBtn" class="action-btn">Generate Report</button>
+        </div>
+
+        <div id="studentCardGrid" class="card-grid"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Edit Modal (simpler local version) -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" id="edit-close-btn">&times;</span>
+      <h2 id="modalTitle">Edit Student Profile</h2>
+      <form id="editForm" class="edit-form">
+        <div class="modal-body single-col">
+          <input type="hidden" id="editStudentId"> <!-- original email stored here -->
+          <div class="form-group"><label>Full Name</label><input id="editFullName" type="text" required></div>
+          <div class="form-group"><label>Student Email (Login ID)</label><input id="editEmail" type="email" required></div>
+          <div class="form-group"><label>Student ID</label><input id="editSchoolId" type="text"></div>
+          <div class="form-group"><label>Phone Number</label><input id="editPhone" type="tel"></div>
+          <div class="form-group"><label>Temporary Password (leave blank to keep)</label><input id="editPassword" type="password" placeholder="••••••"></div>
+
+          <h3>Subject Grades</h3>
+          <div id="dynamicSubjectInputs"></div>
+          <div class="form-group add-subject-group"><input id="newSubjectName" placeholder="New Subject Name"><input id="newSubjectGrade" placeholder="Score (e.g., 88)"><button type="button" id="addNewSubjectBtn" class="action-btn">Add Subject</button></div>
+
+          <h3>Interview Report</h3>
+          <div class="form-group"><textarea id="interviewReport" rows="4" placeholder="Add custom report..."></textarea></div>
+        </div>
+        <button type="submit" class="action-btn save-btn">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toastContainer" aria-live="polite" aria-atomic="true" style="position:fixed;right:16px;bottom:16px;z-index:9999;display:flex;flex-direction:column;gap:8px"></div>
+
+  <!-- Student selector modal (searchable list) -->
+  <div id="studentSelectorModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" id="studentSelectorClose">&times;</span>
+      <h3>Select Student</h3>
+      <div style="margin:12px 0">
+        <input id="studentSelectorSearch" placeholder="Enter student name to view interview report (leave blank to see instructions)" style="width:100%;padding:10px;border:1px solid #e6e7eb;border-radius:8px" />
+        <div id="studentSelectorInstructions" style="margin-top:8px;color:#6b7280;font-size:13px;display:none">Leave the field empty and press Enter to see instructions on using Interview Reports. Otherwise type a student name and select from the list.</div>
+      </div>
+      <div id="studentSelectorList" style="max-height:320px;overflow:auto"></div>
+    </div>
+  </div>
+
+  <!-- Add Student Modal -->
+  <div id="addStudentModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" id="add-close-btn">&times;</span>
+      <h2>Add New Student</h2>
+      <form id="addStudentForm" class="edit-form">
+        <div class="modal-body single-col">
+          <div class="form-group"><label>Full Name</label><input id="addFullName" required></div>
+          <div class="form-group"><label>Student Email (Login ID)</label><input id="addEmail" class="input-light" type="email" required></div>
+          <div class="form-group"><label>Student ID</label><input id="addSchoolId" required></div>
+          <div class="form-group"><label>Phone Number</label><input id="addPhone"></div>
+          <div class="form-group"><label>Temporary Password</label><input id="addPassword" class="input-light" type="password"></div>
+          <p id="addStudentError" class="error-message" style="color:red;display:none"></p>
+        </div>
+        <button type="submit" class="action-btn save-btn create-cta">Create Student Account</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Analytics Modal -->
+  <div id="analyticsModal" class="modal">
+    <div class="modal-content modal-large">
+      <span class="close-btn" id="analytics-close-btn">&times;</span>
+      <div class="modal-header">
+        <h2 id="analyticsModalTitle">Analytics</h2>
+        <div class="analytics-controls" style="margin-left:24px;display:flex;gap:10px;align-items:center">
+          <label style="font-size:13px;color:#6b7280;margin-right:6px">Chart</label>
+          <select id="chartTypeSelect" class="small-select" aria-label="Chart type"></select>
+          <label style="font-size:13px;color:#6b7280;margin-right:6px;margin-left:6px">Subject</label>
+          <select id="subjectSelect" class="small-select" aria-label="Subject filter"></select>
+          <label style="font-size:13px;color:#6b7280;margin-right:6px;margin-left:6px">Limit</label>
+          <select id="topNSelect" class="small-select" aria-label="Top N"></select>
+          <label id="studentSelectLabel" style="font-size:13px;color:#6b7280;margin-right:6px;margin-left:6px;display:none">Student</label>
+          <select id="studentSelect" class="small-select" aria-label="Student selector" style="display:none"></select>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div>
+          <p id="analyticsChartSubtitle" class="chart-subtitle"></p>
+          <div class="chart-container">
+            <canvas id="analyticsChart" width="800" height="320"></canvas>
+            <div id="chartPlaceholder" class="chart-placeholder" style="display:none">
+              <div class="placeholder-inner">
+                <div class="placeholder-illustration">📊</div>
+                <div class="placeholder-text">No chart data yet — add grades or select a student to populate this chart.</div>
+              </div>
             </div>
-            <nav class="sidebar-nav">
-                <ul class="sidebar-menu">
-                    <li class="menu-item active">
-                        <a href="teacher_dashboard.html">Dashboard</a>
-                    </li>
-                </ul>
-                <h3 class="menu-heading">Forms</h3>
-                <ul class="sidebar-menu">
-                    <li class="menu-item"><a href="#" id="sidebarAddStudent">Add Student</a></li>
-                    <li class="menu-item"><a href="#" id="sidebarAddGrade">Add Grade</a></li>
-                    <li class="menu-item"><a href="#" id="sidebarGenerateReport">Generate Report</a></li>
-                </ul>
-                <h3 class="menu-heading">Views</h3>
-                <ul class="sidebar-menu">
-                    <li class="menu-item"><a href="#">All Students</a></li>
-                    <li class="menu-item"><a href="#">Student Performance</a></li>
-                    <li class="menu-item"><a href="#" id="sidebarInterviewReport">Interview Reports</a></li>
-                      <!-- Analytics link removed; use Student Performance for analytics -->
-                </ul>
-            </nav>
-        </aside>
-
-        <div class="main-content-area">
-             <header class="main-header">
-                <div class="main-header-content">
-                    <div class="header-left">
-                        <button class="sidebar-toggle-mobile">
-                           <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-                        </button>
-                        <h1 class="page-title">Dashboard</h1>
-                    </div>
-                    <form class="search-form-header" role="search">
-                        <label for="studentSearchInput" class="visually-hidden">Search for student</label>
-                        <input type="search" id="studentSearchInput" placeholder="Search for students..." class="search-input">
-                        <button type="submit" class="search-button">
-                            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                        </button>
-                    </form>
-                </div>
-            </header>
-
-            <main class="dashboard-main">
-                <div class="summary-grid">
-                    <div class="summary-card bg-blue">
-                         <div class="summary-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                        </div>
-                        <div class="summary-details">
-                            <span class="summary-value" id="totalStudentsCount"></span>
-                            <span class="summary-label">Total Students</span>
-                        </div>
-                    </div>
-                    <div class="summary-card bg-green">
-                         <div class="summary-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V6H6.5A2.5 2.5 0 0 0 4 8.5v11z"></path></svg>
-                        </div>
-                        <div class="summary-details">
-                            <span class="summary-value" id="totalReportsCount"></span>
-                            <span class="summary-label">Reports Generated</span>
-                        </div>
-                    </div>
-                    <div class="summary-card bg-primary">
-                         <div class="summary-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                        </div>
-                        <div class="summary-details">
-                            <span class="summary-value" id="recommendedCount"></span>
-                            <span class="summary-label">Recommended for Interview</span>
-                        </div>
-                    </div>
-                    <div class="summary-card bg-yellow">
-                         <div class="summary-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12" y2="17"></line></svg>
-                        </div>
-                        <div class="summary-details">
-                            <span class="summary-value" id="cautionCount"></span>
-                            <span class="summary-label">Needs Improvement</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dashboard-controls">
-                    <button id="addStudentBtn" class="action-btn add-btn">Add New Student</button>
-                    <button id="generateReportBtn" class="action-btn">Generate Report</button>
-                </div>
-                
-                <div id="studentCardGrid" class="card-grid">
-                    </div>
-            </main>
+          </div>
         </div>
-    </div>
-
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" id="edit-close-btn">&times;</span>
-            <h2 id="modalTitle">Edit Student Profile</h2>
-            <form id="editForm" class="edit-form">
-                <div class="modal-body">
-                    <input type="hidden" id="editStudentId">
-                    <div class="form-group">
-                        <label for="studentName">Student Name:</label>
-                        <input type="text" id="studentName" readonly>
-                    </div>
-                    <hr>
-                    <h3>Subject Grades</h3>
-                    <div id="dynamicSubjectInputs"></div>
-                    <div class="form-group add-subject-group">
-                        <input type="text" id="newSubjectName" placeholder="New Subject Name" autocomplete="off">
-                        <input type="text" id="newSubjectGrade" placeholder="Score (e.g., 88%)" autocomplete="off">
-                        <button type="button" id="addNewSubjectBtn" class="action-btn">Add Subject</button>
-                    </div>
-                    <hr>
-                    <h3>Interview Report</h3>
-                    <div class="form-group">
-                        <label for="interviewReport">Custom Report:</label>
-                        <textarea id="interviewReport" rows="5" placeholder="Add a custom report or note..."></textarea>
-                    </div>
-                </div>
-                <button type="submit" class="action-btn save-btn">Save Changes</button>
-            </form>
+        <div>
+          <div id="analyticsStudentSummary" class="student-summary">
+            <!-- Populated dynamically with selected student's quick info -->
+          </div>
+          <div id="analyticsReportText" class="report-text-analysis"></div>
         </div>
+      </div>
     </div>
+  </div>
 
-    <div id="addStudentModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" id="add-close-btn">&times;</span>
-            <h2>Add New Student</h2>
-            <form id="addStudentForm" class="edit-form">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="addFullName">Full Name:</label>
-                        <input type="text" id="addFullName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="addEmail">Student Email (Login ID):</label>
-                        <input type="email" id="addEmail" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="addSchoolId">Student ID:</label>
-                        <input type="text" id="addSchoolId" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="addPhone">Phone Number:</label>
-                        <input type="tel" id="addPhone" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="addPassword">Temporary Password:</label>
-                        <input type="password" id="addPassword" required>
-                    </div>
-                    <p class="error-message" id="addStudentError" style="color:red; display:none;"></p>
-                </div>
-                <button type="submit" class="action-btn save-btn">Create Student Account</button>
-            </form>
-        </div>
-    </div>
+  <script>
+    // Local-only teacher dashboard script (cleaned and complete)
+    let students = [];
+    let analyticsChartInstance = null;
 
-    <div id="reportModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" id="report-close-btn">&times;</span>
-            <h2>Generated Student Report</h2>
-            <div class="modal-body" id="reportModalBody">
-                </div>
-            <button type="button" class="action-btn" id="printReportBtn">Print Report</button>
-        </div>
-    </div>
+    // API base: can be set by `api-config.js` (window.__API_BASE__), otherwise fallback to localhost for dev
+    const API_BASE = (window.__API_BASE__ && window.__API_BASE__.trim()) ? window.__API_BASE__.trim() : 'http://localhost:3000';
+    function isServerMode(){ return localStorage.getItem('useServer') === 'true'; }
 
-    <div id="analyticsModal" class="modal">
-        <div class="modal-content modal-large">
-            <span class="close-btn" id="analytics-close-btn">&times;</span>
-            <h2 id="analyticsModalTitle">Student Performance Analytics</h2>
-            <div class="modal-body" id="analyticsModalBody">
-                <p class="chart-subtitle" id="analyticsChartSubtitle">Overall average scores across all subjects, sorted high-to-low.</p>
-                <div class="chart-container">
-                    <canvas id="analyticsChart"></canvas>
-                </div>
-                <div id="analyticsReportText" class="report-text-analysis">
-                    </div>
-            </div>
-        </div>
-    </div>
+    async function fetchStudentsFromServer(){
+      try{
+        const resp = await fetch(`${API_BASE}/api/get-all-students`,{ method:'GET', headers:{'Accept':'application/json'} });
+        const j = await resp.json();
+        if(j && j.success && Array.isArray(j.students)) return j.students;
+        return [];
+      } catch(err){ console.error('fetchStudentsFromServer error', err); return null; }
+    }
 
+    async function addStudentToServer(student){
+      try{
+        const resp = await fetch(`${API_BASE}/api/teacher-add-student`,{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(student) });
+        const j = await resp.json(); return j;
+      } catch(err){ console.error('addStudentToServer error', err); return { success:false, message: 'Network error' }; }
+    }
 
-    <script>
-        // DEMO data: automatically add demo users locally when none exist
-        const DEMO_USERS = [
-            {
-                email: 'demo.student1@example.com',
-                fullName: 'Demo Student One',
-                schoolId: 'S1001',
-                phoneNumber: '9999990001',
-                password: '',
-                userType: 'student',
-                grades: { math: { score: '92', grade: 'A' }, programming: { score: '88', grade: 'B' } },
-                interviewReport: 'Strong candidate for engineering roles; good foundation in Math and Programming.'
-            },
-            {
-                email: 'demo.student2@example.com',
-                fullName: 'Demo Student Two',
-                schoolId: 'S1002',
-                phoneNumber: '9999990002',
-                password: '',
-                userType: 'student',
-                grades: { math: { score: '72', grade: 'C' }, physics: { score: '68', grade: 'D' } },
-                interviewReport: 'Needs improvement in Physics; consider remedial sessions.'
-            },
-            {
-                email: 'demo.student3@example.com',
-                fullName: 'Demo Student Three',
-                schoolId: 'S1003',
-                phoneNumber: '9999990003',
-                password: '',
-                userType: 'student',
-                grades: {},
-                interviewReport: ''
-            },
-            {
-                email: 'teacher@example.com',
-                fullName: 'Ms. Demo Teacher',
-                schoolId: '',
-                phoneNumber: '',
-                password: '',
-                userType: 'teacher',
-                grades: {},
-                interviewReport: ''
-            }
-        ];
+    async function updateStudentOnServer(email, newGrades, newInterviewReport){
+      try{
+        const resp = await fetch(`${API_BASE}/api/update-student-data`,{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, newGrades, newInterviewReport }) });
+        const j = await resp.json(); return j;
+      } catch(err){ console.error('updateStudentOnServer error', err); return { success:false, message:'Network error' }; }
+    }
 
-        function ensureDemoUsers(){
-            try{
-                const raw = localStorage.getItem('users');
-                let users = [];
-                if(raw){ users = JSON.parse(raw || '[]'); }
-                if(!users || users.length === 0){
-                    localStorage.setItem('users', JSON.stringify(DEMO_USERS));
-                    localStorage.setItem('userEmail', 'teacher@example.com');
-                    return;
-                }
-                let changed = false;
-                DEMO_USERS.forEach(d => {
-                    const found = users.find(u => (u.email||'').toLowerCase() === (d.email||'').toLowerCase());
-                    if(!found){ users.push(d); changed = true; }
-                });
-                if(changed) localStorage.setItem('users', JSON.stringify(users));
-                if(!localStorage.getItem('userEmail')) localStorage.setItem('userEmail', 'teacher@example.com');
-            }catch(err){ console.error('ensureDemoUsers error', err); }
+    function getUsersFromLocal(){ try { return JSON.parse(localStorage.getItem('users')||'[]'); } catch(e){ return []; } }
+
+    function getInterviewRecommendation(student){
+      const grades = student.grades || {};
+      if(!grades || Object.keys(grades).length===0) return { text: 'No grades added yet.', status: 'na' };
+      const engineeringSubjects = ['math','physics','programming','chemistry'];
+      const minPassing = 75; let good=0, total=0;
+      for(const s of Object.keys(grades)){
+        const v = parseInt(grades[s].score);
+        if(isNaN(v)) continue;
+        if(engineeringSubjects.includes(s.toLowerCase())){ total++; if(v>=minPassing) good++; }
+      }
+      if(total===0) return { text:'No core engineering grades.', status:'na'};
+      const pct = (good/total)*100; if(pct>=80) return {text:'Highly Recommended', status:'high'}; if(pct>=50) return {text:'Recommended with Caution', status:'medium'}; return {text:'Not Recommended', status:'low'};
+    }
+
+    async function loadDashboardData(){
+      // If server-mode is enabled, fetch from API
+      if(isServerMode()){
+        const srv = await fetchStudentsFromServer();
+        if(srv === null){
+          showToast('Could not reach server — switching to local mode','error');
+          localStorage.setItem('useServer','false');
+        } else {
+          // Map server student objects to local shape
+          students = (srv||[]).map((s, i) => ({ id: s.id || s.schoolId || ('s'+(i+1)), name: s.name || s.full_name || s.fullName || s.email, email: s.email||'', grades: s.grades||{}, interviewReport: s.interviewReport||s.interview_report||'' }));
+          renderCards(students);
+          updateSummaryCards();
+          // teacher info: prefer localStorage.userEmail if set
+          const email = localStorage.getItem('userEmail') || '';
+          document.getElementById('teacherName').textContent = email || 'Teacher';
+          return;
+        }
+      }
+
+      // Local fallback
+      const all = getUsersFromLocal();
+      students = all.filter(u => (u.userType||'').toLowerCase() === 'student').map((u, i) => ({ id: u.schoolId||('s'+(i+1)), name: u.fullName||u.name||u.email, email: u.email||'', grades: u.grades||{}, interviewReport: u.interviewReport||'' }));
+      renderCards(students);
+      updateSummaryCards();
+      const email = localStorage.getItem('userEmail'); const me = getUsersFromLocal().find(x=>x.email===email);
+      document.getElementById('teacherName').textContent = me ? (me.fullName||me.email) : 'Teacher';
+    }
+
+    function updateSummaryCards(){
+      const reports = students.filter(s=> s.interviewReport && s.interviewReport.length>0).length;
+      const recommended = students.filter(s=> getInterviewRecommendation(s).status==='high').length;
+      const needs = students.filter(s=> ['low','medium'].includes(getInterviewRecommendation(s).status)).length;
+      document.getElementById('totalStudentsCount').textContent = students.length;
+      document.getElementById('totalReportsCount').textContent = reports;
+      document.getElementById('recommendedCount').textContent = recommended;
+      document.getElementById('cautionCount').textContent = needs;
+    }
+
+    function renderCards(data){
+      const grid = document.getElementById('studentCardGrid'); grid.innerHTML='';
+      data.forEach(student=>{
+        const rec = getInterviewRecommendation(student);
+        const card = document.createElement('div'); card.className='card student-card'; card.dataset.email = student.email;
+        let gradeList = '<li>No grades added.</li>';
+        if(student.grades && Object.keys(student.grades).length>0){ gradeList = Object.entries(student.grades).map(([k,v])=>`<li><strong>${k}:</strong> ${v.score} (${v.grade||''})</li>`).join(''); }
+        card.innerHTML = `
+          <div class="card-body">
+            <div class="student-info"><p class="student-id">${student.id}</p><h3 class="student-name">${student.name}</h3></div>
+            <div class="recommendation-badge recommendation-${rec.status}">${rec.text}</div>
+            <div class="actions"><button class="action-btn edit-btn" data-email="${student.email}">Edit</button><button class="action-btn report-btn interview-report-btn" data-email="${student.email}">View Report</button></div>
+            <button class="accordion-btn"><span class="accordion-text">Show All Grades</span><span class="accordion-icon">▾</span></button>
+            <div class="accordion-panel"><ul class="grade-list">${gradeList}</ul></div>
+          </div>`;
+        grid.appendChild(card);
+      });
+      updateSummaryCards();
+    }
+
+    // DOM events
+    document.addEventListener('click', function(e){
+      if(e.target.classList.contains('edit-btn')){
+        const email = e.target.dataset.email; const student = students.find(s=>s.email===email); if(!student) return;
+        document.getElementById('modalTitle').textContent='Edit Student';
+        document.getElementById('editStudentId').value = student.email; // original key
+        // populate editable fields
+        document.getElementById('editFullName').value = student.name || student.fullName || '';
+        document.getElementById('editEmail').value = student.email || '';
+        document.getElementById('editSchoolId').value = student.id || student.schoolId || '';
+        document.getElementById('editPhone').value = student.phoneNumber || '';
+        document.getElementById('editPassword').value = '';
+        populateModalGrades(student.grades);
+        document.getElementById('interviewReport').value = student.interviewReport||'';
+        document.getElementById('editModal').style.display='flex';
+      }
+      if(e.target.classList.contains('accordion-btn')){
+        const btn = e.target; const panel = btn.nextElementSibling; btn.classList.toggle('active'); if(panel.style.maxHeight){ panel.style.maxHeight = null; btn.querySelector('.accordion-text').textContent='Show All Grades'; } else { panel.style.maxHeight = panel.scrollHeight + 'px'; btn.querySelector('.accordion-text').textContent='Hide All Grades'; }
+      }
+      if(e.target.classList.contains('interview-report-btn')){
+        const email = e.target.dataset.email; const student = students.find(s=>s.email===email); if(student) showInterviewReport(student);
+      }
+    });
+
+    // Search and controls
+    document.getElementById('addStudentBtn').addEventListener('click', ()=>{ document.getElementById('addStudentForm').reset(); document.getElementById('addStudentError').style.display='none'; document.getElementById('addStudentModal').style.display='flex'; });
+    document.getElementById('sidebarAddStudent').addEventListener('click', (e)=>{ e.preventDefault(); document.getElementById('addStudentBtn').click(); });
+    document.getElementById('sidebarGenerateReport').addEventListener('click', (e)=>{ e.preventDefault(); document.getElementById('generateReportBtn').click(); });
+
+    // Sidebar: Add Grade -> open student selector (searchable)
+    document.getElementById('sidebarAddGrade').addEventListener('click', (e)=>{
+      e.preventDefault();
+      openStudentSelector((student)=>{
+        if(!student) return;
+        document.getElementById('modalTitle').textContent = 'Edit Student Grades';
+        document.getElementById('editStudentId').value = student.email;
+        populateModalGrades(student.grades);
+        document.getElementById('interviewReport').value = student.interviewReport || '';
+        document.getElementById('editModal').style.display = 'flex';
+      });
+    });
+
+    // Sidebar: Interview Report -> prompt or instruct and open report for a chosen student
+    document.getElementById('sidebarInterviewReport').addEventListener('click', (e)=>{
+      e.preventDefault();
+      openStudentSelector((student)=>{
+        if(!student){ showToast('No student selected','info'); return; }
+        showInterviewReport(student);
+      });
+    });
+
+    // Sidebar: Student Performance -> open analytics as an overview
+    const spBtn = document.getElementById('sidebarStudentPerformance');
+    if(spBtn){
+      spBtn.addEventListener('click', (e)=>{
+        e.preventDefault();
+        // prepare modal for overall student performance
+        document.getElementById('analyticsModalTitle').textContent = 'Student Performance Analytics';
+        document.getElementById('analyticsChartSubtitle').textContent = 'Overall average scores across all subjects, sorted high-to-low.';
+        // set a friendly dataset label used by Chart.js
+        window.analyticsDatasetLabel = 'Overall Student Average (%)';
+        renderAnalyticsControls();
+        generateAnalyticsChart();
+        document.getElementById('analyticsModal').style.display = 'flex';
+      });
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', ()=>{ localStorage.removeItem('userEmail'); window.location.href='login.html'; });
+
+    // Add Student (local)
+    document.getElementById('addStudentForm').addEventListener('submit', async function(e){
+      e.preventDefault();
+      const err = document.getElementById('addStudentError'); err.style.display='none';
+      const student = {
+        fullName: document.getElementById('addFullName').value.trim(),
+        email: (document.getElementById('addEmail').value||'').trim().toLowerCase(),
+        schoolId: document.getElementById('addSchoolId').value.trim(),
+        phoneNumber: document.getElementById('addPhone').value.trim(),
+        password: document.getElementById('addPassword').value
+      };
+      if(!student.email||!student.fullName){ err.textContent='Name and email required'; err.style.display='block'; return; }
+
+      if(isServerMode()){
+        // Call backend
+        const resp = await addStudentToServer({ email: student.email, fullName: student.fullName, schoolId: student.schoolId, phoneNumber: student.phoneNumber, password: student.password });
+        if(resp && resp.success){ showToast('Student created on server','success'); document.getElementById('addStudentModal').style.display='none'; await loadDashboardData(); }
+        else { err.textContent = resp && resp.message ? resp.message : 'Failed to create student on server'; err.style.display='block'; }
+        return;
+      }
+
+      // Local mode
+      const users = getUsersFromLocal();
+      if(users.find(u=> (u.email||'').toLowerCase()===student.email)){ err.textContent='User exists'; err.style.display='block'; return; }
+      users.push({ email: student.email, fullName: student.fullName, schoolId: student.schoolId||('s'+(users.length+1)), phoneNumber: student.phoneNumber||'', password: student.password||'', userType: 'student', grades: {}, interviewReport: '' });
+      localStorage.setItem('users', JSON.stringify(users));
+      showToast('Student added locally', 'success');
+      document.getElementById('addStudentModal').style.display='none';
+      await loadDashboardData();
+    });
+
+    // Populate modal grades
+    function populateModalGrades(grades){ const container = document.getElementById('dynamicSubjectInputs'); container.innerHTML=''; if(!grades||Object.keys(grades).length===0){ container.innerHTML='<p style="text-align:center;color:#666">No grades yet.</p>'; return; } for(const subject in grades){ const g = grades[subject]; const group = document.createElement('div'); group.className='form-group grade-input-group'; group.innerHTML = `<input class="subject-name-input" value="${subject}" data-subject-name="${subject}" readonly><input class="grade-score-input" value="${g.score}" data-subject-score="${subject}" placeholder="Score"><input class="grade-letter-input" value="${g.grade||''}" data-subject-grade="${subject}" placeholder="Grade">`; container.appendChild(group); } }
+
+    document.getElementById('addNewSubjectBtn').addEventListener('click', function(){
+      const name = (document.getElementById('newSubjectName').value||'').trim().toLowerCase();
+      const score = (document.getElementById('newSubjectGrade').value||'').trim();
+      if(!name||!score){ showToast('Enter subject and score','error'); return; }
+      const container = document.getElementById('dynamicSubjectInputs'); const no = container.querySelector('p'); if(no) no.remove(); const group = document.createElement('div'); group.className='form-group grade-input-group'; group.innerHTML = `<input class="subject-name-input" value="${name}" data-subject-name="${name}" readonly><input class="grade-score-input" value="${score}" data-subject-score="${name}" placeholder="Score"><input class="grade-letter-input" value="" data-subject-grade="${name}" placeholder="Grade">`; container.appendChild(group); document.getElementById('newSubjectName').value=''; document.getElementById('newSubjectGrade').value=''; showToast('Subject added to editor','success'); });
+
+    // Save edits (local)
+    document.getElementById('editForm').addEventListener('submit', async function(e){
+      e.preventDefault();
+      const originalEmail = document.getElementById('editStudentId').value;
+      const fullName = (document.getElementById('editFullName').value||'').trim();
+      const newEmail = (document.getElementById('editEmail').value||'').trim().toLowerCase();
+      const schoolId = (document.getElementById('editSchoolId').value||'').trim();
+      const phone = (document.getElementById('editPhone').value||'').trim();
+      const newPassword = (document.getElementById('editPassword').value||'').trim();
+      const customReport = document.getElementById('interviewReport').value;
+      const newGrades = {};
+      const scoreInputs = document.querySelectorAll('#dynamicSubjectInputs input[data-subject-score]');
+      const gradeInputs = document.querySelectorAll('#dynamicSubjectInputs input[data-subject-grade]');
+      const nameInputs = document.querySelectorAll('#dynamicSubjectInputs input.subject-name-input');
+      for(let i=0;i<scoreInputs.length;i++){
+        const subj = (nameInputs[i].dataset.subjectName||nameInputs[i].value.trim()).toLowerCase();
+        const score = scoreInputs[i].value.trim();
+        let grade = gradeInputs[i].value.trim();
+        if(subj && score){
+          if(!grade){
+            const sc = parseInt(score);
+            if(sc>=90) grade='A'; else if(sc>=80) grade='B'; else if(sc>=70) grade='C'; else if(sc>=60) grade='D'; else grade='F';
+            gradeInputs[i].value = grade;
+          }
+          newGrades[subj] = { score: score, grade: grade };
+        }
+      }
+      try{
+        // Server mode: update via API
+        if(isServerMode()){
+          // If email changed, we do not attempt to rename via this endpoint — block for safety
+          if(newEmail && newEmail !== (originalEmail||'').toLowerCase()){
+            showToast('Changing email is not supported in server mode. Edit locally or contact admin.','error');
+            return;
+          }
+          const resp = await updateStudentOnServer(originalEmail, newGrades, customReport);
+          if(resp && resp.success){ showToast('Saved on server','success'); document.getElementById('editModal').style.display='none'; await loadDashboardData(); }
+          else { showToast(resp && resp.message ? resp.message : 'Failed to save on server','error'); }
+          return;
         }
 
-        // Helper to read users from localStorage
-        function getUsersFromLocal(){ try { return JSON.parse(localStorage.getItem('users')||'[]'); } catch(e){ return []; } }
+        // Local fallback
+        const users = getUsersFromLocal();
+        const idx = users.findIndex(u=> (u.email||'').toLowerCase() === (originalEmail||'').toLowerCase());
+        if(idx===-1){ showToast('Student not found','error'); return; }
 
-        // This will hold our student data from the server
-        let students = []; 
-        let analyticsChartInstance = null; // This will hold our chart object
-        let interviewChartInstance = null; // This will hold the radar chart
-
-        // --- All your UI selectors ---
-        const studentCardGrid = document.getElementById('studentCardGrid');
-        const studentSearchInput = document.getElementById('studentSearchInput');
-        const addStudentBtn = document.getElementById('addStudentBtn');
-        const generateReportBtn = document.getElementById('generateReportBtn');
-        
-        // --- Edit Modal ---
-        const editModal = document.getElementById('editModal');
-        const editForm = document.getElementById('editForm');
-        const modalTitle = document.getElementById('modalTitle');
-        const editCloseBtn = document.getElementById('edit-close-btn');
-        const dynamicSubjectInputs = document.getElementById('dynamicSubjectInputs');
-        const addNewSubjectBtn = document.getElementById('addNewSubjectBtn');
-        const newSubjectNameInput = document.getElementById('newSubjectName');
-        const newSubjectGradeInput = document.getElementById('newSubjectGrade');
-        const interviewReportInput = document.getElementById('interviewReport');
-        
-        // --- Add Modal ---
-        const addStudentModal = document.getElementById('addStudentModal');
-        const addCloseBtn = document.getElementById('add-close-btn');
-        const addStudentForm = document.getElementById('addStudentForm');
-        const addStudentError = document.getElementById('addStudentError');
-
-        // --- Report Modal Selectors ---
-        const reportModal = document.getElementById('reportModal');
-        const reportCloseBtn = document.getElementById('report-close-btn');
-        const reportModalBody = document.getElementById('reportModalBody');
-        const printReportBtn = document.getElementById('printReportBtn');
-
-        // --- *** NEW: Analytics & Interview Modal Selectors *** ---
-        const analyticsModal = document.getElementById('analyticsModal');
-        const analyticsCloseBtn = document.getElementById('analytics-close-btn');
-        const analyticsModalTitle = document.getElementById('analyticsModalTitle');
-        const analyticsChartSubtitle = document.getElementById('analyticsChartSubtitle');
-        const analyticsReportText = document.getElementById('analyticsReportText');
-        
-        // --- Summary Cards ---
-        const totalStudentsCount = document.getElementById('totalStudentsCount');
-        const totalReportsCount = document.getElementById('totalReportsCount');
-        const recommendedCount = document.getElementById('recommendedCount');
-        const cautionCount = document.getElementById('cautionCount');
-        
-        // --- Sidebar buttons ---
-        const sidebarAddStudent = document.getElementById('sidebarAddStudent');
-        const sidebarAddGrade = document.getElementById('sidebarAddGrade');
-        const sidebarGenerateReport = document.getElementById('sidebarGenerateReport');
-        // sidebarAnalytics removed; Student Performance button (`sidebarStudentPerformance`) is used instead
-        const sidebarInterviewReport = document.getElementById('sidebarInterviewReport'); // <-- NEW
-
-
-        // --- This function runs when the page first loads ---
-        document.addEventListener('DOMContentLoaded', () => {
-            // Ensure demo users exist for local development/demo mode
-            ensureDemoUsers();
-
-            // 1. Check if user is logged in
-            const userEmail = localStorage.getItem('userEmail');
-            if (!userEmail) {
-                alert('You are not logged in.');
-                window.location.href = 'login.html';
-                return;
-            }
-            
-            // 2. Role-based UI: show/hide add-student controls for teacher/admin only
-            const currentUser = getUsersFromLocal().find(u => (u.email||'').toLowerCase() === (userEmail||'').toLowerCase());
-            const role = (currentUser && currentUser.userType) ? (currentUser.userType||'').toLowerCase() : '';
-            if(!(role === 'teacher' || role === 'admin')){
-                const addBtn = document.getElementById('addStudentBtn'); if(addBtn) addBtn.style.display = 'none';
-                const sideAdd = document.getElementById('sidebarAddStudent'); if(sideAdd) sideAdd.style.display = 'none';
-            }
-
-            // 3. Load dashboard data (from localStorage)
-            loadDashboardData();
-
-            // 3. Add a real logout function to the "Logout" link
-            const logoutLink = document.querySelector('a[href="login.html"]');
-            if (logoutLink) {
-                logoutLink.addEventListener('click', (event) => {
-                    event.preventDefault(); // Stop the link
-                    localStorage.removeItem('userEmail');
-                    alert('You have been logged out.');
-                    window.location.href = 'login.html';
-                });
-            }
-            
-            // 4. Add listeners for modal close buttons
-            editCloseBtn.addEventListener('click', () => editModal.style.display = 'none');
-            addCloseBtn.addEventListener('click', () => addStudentModal.style.display = 'none');
-            reportCloseBtn.addEventListener('click', () => reportModal.style.display = 'none');
-            analyticsCloseBtn.addEventListener('click', () => analyticsModal.style.display = 'none'); 
-            
-            // 5. Add listener for clicking outside the modal
-             window.addEventListener('click', (event) => {
-                if (event.target == editModal) editModal.style.display = 'none';
-                if (event.target == addStudentModal) addStudentModal.style.display = 'none';
-                if (event.target == reportModal) reportModal.style.display = 'none';
-                if (event.target == analyticsModal) analyticsModal.style.display = 'none';
-            });
-            
-            // 6. Add listener for print button
-            printReportBtn.addEventListener('click', () => window.print() );
-        });
-
-        // --- Function to load all data from localStorage ---
-        function loadDashboardData() {
-            try {
-                const all = getUsersFromLocal();
-                students = all.filter(u => (u.userType||'').toLowerCase() === 'student').map((u,i)=>({ id: u.schoolId||('s'+(i+1)), name: u.fullName||u.name||u.email, email: u.email||'', grades: u.grades||{}, interviewReport: u.interviewReport||'' }));
-                renderCards(students);
-                updateSummaryCards();
-                // teacher info
-                const email = localStorage.getItem('userEmail'); const me = all.find(x=>x.email===email);
-                document.getElementById('teacherName').textContent = me ? (me.fullName||me.email) : 'Teacher';
-            } catch(err){ console.error('loadDashboardData error', err); }
+        // Prevent duplicate email if changed
+        if(newEmail && newEmail !== (originalEmail||'').toLowerCase()){
+          const other = users.find(u=> (u.email||'').toLowerCase() === newEmail);
+          if(other){ showToast('Email already in use','error'); return; }
         }
 
-        // --- Helper function (no change) ---
-        function getInterviewRecommendation(student) {
-            const grades = student.grades;
-            if (!grades || Object.keys(grades).length === 0) {
-                return { text: 'No grades added yet.', status: 'na' };
-            }
-            const engineeringSubjects = ['math', 'physics', 'programming', 'chemistry', 'thermodynamics', 'circuits'];
-            const minPassingGrade = 75;
-            let goodSubjectsCount = 0;
-            let totalSubjectsCount = 0;
-            for (const subject in grades) {
-                const gradeData = grades[subject];
-                if (gradeData && gradeData.score) {
-                    const gradeValue = parseInt(gradeData.score);
-                    if (engineeringSubjects.includes(subject.toLowerCase()) && !isNaN(gradeValue)) {
-                        totalSubjectsCount++;
-                        if (gradeValue >= minPassingGrade) {
-                            goodSubjectsCount++;
-                        }
-                    }
-                }
-            }
-            if (totalSubjectsCount === 0) return { text: 'No core engineering grades.', status: 'na' };
-            const goodSubjectPercentage = (goodSubjectsCount / totalSubjectsCount) * 100;
-            if (goodSubjectPercentage >= 80) return { text: 'Highly Recommended', status: 'high' };
-            if (goodSubjectPercentage >= 50) return { text: 'Recommended with Caution', status: 'medium' };
-            return { text: 'Not Recommended', status: 'low' };
+        // Update fields
+        users[idx].fullName = fullName || users[idx].fullName || users[idx].name;
+        if(newEmail) users[idx].email = newEmail;
+        if(schoolId) users[idx].schoolId = schoolId;
+        if(phone) users[idx].phoneNumber = phone;
+        if(newPassword) users[idx].password = newPassword;
+
+        // Merge grades and report
+        users[idx].grades = Object.assign({}, users[idx].grades||{}, newGrades);
+        users[idx].interviewReport = customReport || users[idx].interviewReport || '';
+
+        localStorage.setItem('users', JSON.stringify(users));
+        showToast('Saved locally','success');
+        document.getElementById('editModal').style.display='none';
+        await loadDashboardData();
+      } catch(err){ console.error(err); showToast('Failed to save locally','error'); }
+    });
+
+    // Generate analytics chart (fallback if Chart.js not available)
+    function getAvailableSubjects(){
+      const s = new Set();
+      students.forEach(st=>{ if(st.grades){ Object.keys(st.grades).forEach(k=>s.add(k)); } });
+      return Array.from(s).sort();
+    }
+
+    function renderAnalyticsControls(){
+      const ct = document.getElementById('chartTypeSelect');
+      const ss = document.getElementById('subjectSelect');
+      const tn = document.getElementById('topNSelect');
+      const studentSel = document.getElementById('studentSelect');
+      const studentLabel = document.getElementById('studentSelectLabel');
+      if(!ct||!ss||!tn) return;
+      // chart types
+      ct.innerHTML = '<option value="bar">Bar</option><option value="line">Line</option><option value="radar">Radar</option>';
+      // subjects
+      const subs = getAvailableSubjects();
+      ss.innerHTML = '<option value="Overall">Overall</option>' + subs.map(x=>`<option value="${x}">${x.charAt(0).toUpperCase()+x.slice(1)}</option>`).join('');
+      // top N (default Top 10)
+      tn.innerHTML = '<option value="0">All</option><option value="5">Top 5</option><option value="10" selected>Top 10</option><option value="20">Top 20</option>';
+      // student selector: populate
+      if(studentSel){
+        const stOpts = students.map(s=>`<option value="${s.email}">${s.name}</option>`).join('');
+        studentSel.innerHTML = '<option value="">(select student)</option>' + stOpts;
+      }
+      // attach listeners
+      [ct,ss,tn].forEach(el=> el.onchange = ()=>{ window.analyticsChartType = ct.value; window.analyticsSubject = ss.value; window.analyticsTopN = parseInt(tn.value)||0; // show/hide student selector when radar selected
+        if(window.analyticsChartType === 'radar'){
+          if(studentSel){ studentSel.style.display='inline-block'; studentLabel.style.display='inline-block'; }
+        } else { if(studentSel){ studentSel.style.display='none'; studentLabel.style.display='none'; } }
+        generateAnalyticsChart(); });
+      // student select change: redraw as a single-student radar
+      if(studentSel){ studentSel.onchange = ()=>{ window.analyticsSelectedStudent = studentSel.value || null; generateAnalyticsChart(); }; }
+      window.analyticsChartType = ct.value; window.analyticsSubject = ss.value; window.analyticsTopN = parseInt(tn.value)||0; window.analyticsSelectedStudent = (studentSel && studentSel.value) || null;
+    }
+
+    function generateAnalyticsChart(){
+      const canvas = document.getElementById('analyticsChart');
+      const ctx = canvas.getContext('2d');
+      let chartType = window.analyticsChartType || 'bar';
+      let subject = window.analyticsSubject || 'Overall';
+      let topN = window.analyticsTopN || 0;
+
+      // prepare data depending on subject selection
+      let labels = [];
+      let data = [];
+
+      if(subject === 'Overall'){
+        // per-student average across subjects
+        let arr = students.map(s=>{ let total=0,count=0; for(const k in s.grades){ const v = parseInt(s.grades[k].score); if(!isNaN(v)){ total+=v; count++; } } return { name: s.name, avg: count? (total/count):0, grades: s.grades, id: s.id } });
+        arr.sort((a,b)=>b.avg-a.avg);
+        if(topN>0) arr = arr.slice(0, topN);
+        labels = arr.map(a=>a.name);
+        data = arr.map(a=>a.avg);
+        // special handling for radar: show per-subject averages across the selected top students
+        if(chartType === 'radar'){
+          const subs = getAvailableSubjects();
+          labels = subs.map(s=>s.charAt(0).toUpperCase()+s.slice(1));
+          const values = subs.map(sub=>{
+            let tot=0,cnt=0;
+            arr.forEach(st=>{ if(st.grades && st.grades[sub]){ const v = parseInt(st.grades[sub].score); if(!isNaN(v)){ tot+=v; cnt++; } } });
+            return cnt? Math.round(tot/cnt):0;
+          });
+          data = values;
+        }
+      } else {
+        // per-student score for a specific subject
+        let arr = students.map(s=>({ name: s.name, val: (s.grades && s.grades[subject])? (parseInt(s.grades[subject].score)||0):0 }));
+        arr.sort((a,b)=>b.val-a.val);
+        if(topN>0) arr = arr.slice(0, topN);
+        labels = arr.map(a=>a.name);
+        data = arr.map(a=>a.val);
+        // radar is allowed: it will show students as axes
+        if(chartType === 'radar'){
+          // labels already students; leave as-is
+        }
+      }
+
+      // show/hide placeholder
+      const placeholder = document.getElementById('chartPlaceholder');
+      if((!data || data.length===0 || data.every(v=>v===0))){
+        if(placeholder){ placeholder.style.display = 'flex'; }
+        if(canvas) canvas.style.display = 'none';
+      } else {
+        if(placeholder) placeholder.style.display = 'none';
+        if(canvas) canvas.style.display = 'block';
+      }
+
+      // draw using Chart.js if available
+      if(window.Chart){
+        if(analyticsChartInstance) analyticsChartInstance.destroy();
+        analyticsChartInstance = new Chart(ctx, {
+          type: chartType === 'radar' ? 'radar' : (chartType === 'bar' ? 'bar' : 'line'),
+          data: {
+            labels: labels,
+            datasets: [{ label: (window.analyticsDatasetLabel || 'Overall Student Average (%)'), data: data, borderColor: 'rgb(75,192,192)', backgroundColor: 'rgba(75,192,192,0.2)', fill: chartType !== 'bar' }]
+          },
+          options: { responsive:true, maintainAspectRatio:false, scales: { y: { beginAtZero:true, max:100 } } }
+        });
+      } else {
+        // fallback renderer when Chart.js is not available
+        if(chartType === 'bar'){
+          drawBarFallback('analyticsChart', labels, data);
+        } else if(chartType === 'line'){
+          drawSimpleLineChart(canvas, labels, data);
+        } else {
+          // radar or unknown -> use a simple line fallback as a graceful degradation
+          drawSimpleLineChart(canvas, labels, data);
+        }
+      }
+    }
+
+    function drawSimpleLineChart(canvas, labels, data){
+      const dpr = window.devicePixelRatio||1;
+      const cssW = canvas.clientWidth||canvas.width;
+      const cssH = canvas.clientHeight||canvas.height;
+      canvas.width = Math.round(cssW*dpr);
+      canvas.height = Math.round(cssH*dpr);
+      canvas.style.width = cssW+'px';
+      canvas.style.height = cssH+'px';
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      ctx.clearRect(0,0,cssW,cssH);
+      if(!labels.length){ ctx.fillStyle='#666'; ctx.font='14px sans-serif'; ctx.fillText('No data',10,24); return; }
+      const pad=40; const w = cssW-pad*2; const h = cssH-pad*2; const max = Math.max(100, ...data);
+      // Y grid lines
+      ctx.strokeStyle='#f1f5f9'; ctx.lineWidth=1;
+      for(let yTick=0;yTick<=5;yTick++){ const yy = pad + (yTick/5)*h; ctx.beginPath(); ctx.moveTo(pad, yy); ctx.lineTo(pad+w, yy); ctx.stroke(); }
+      // axes
+      ctx.strokeStyle='#e6e7eb'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(pad, pad); ctx.lineTo(pad, pad+h); ctx.lineTo(pad+w, pad+h); ctx.stroke();
+      // draw line points
+      ctx.strokeStyle='#0ea5a0'; ctx.lineWidth=2; ctx.beginPath(); data.forEach((v,i)=>{ const x = pad + (i/(data.length-1||1))*w; const y = pad + h - ((v)/(max||1))*h; if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }); ctx.stroke();
+      // draw dots
+      data.forEach((v,i)=>{ const x = pad + (i/(data.length-1||1))*w; const y = pad + h - ((v)/(max||1))*h; ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fill(); ctx.strokeStyle='#0ea5a0'; ctx.lineWidth=2; ctx.stroke(); });
+      // labels
+      ctx.fillStyle='#222'; ctx.font='12px sans-serif'; labels.forEach((lbl,i)=>{ const x = pad + (i/(labels.length-1||1))*w; ctx.fillText(lbl, x-10, pad+h+18); });
+    }
+
+    // Interview report functions (reuse existing analysis)
+    function analyzeStudentForInterview(grades){ const keySubjects=['programming','math','physics']; let strengths=[],weaknesses=[],chartData=[],numeric=[]; if(!grades||Object.keys(grades).length===0){ return { chartData:{ labels:keySubjects.map(s=>s.charAt(0).toUpperCase()+s.slice(1)), scores:[0,0,0] }, summary:'No grades available.', strengths:[], weaknesses:['No data.'], recommendation:'Not recommended.' }; } keySubjects.forEach(sub=>{ if(grades[sub]){ const score = parseInt(grades[sub].score)||0; chartData.push(score); numeric.push(score); if(score>=85) strengths.push(`${sub} (${score}%)`); else if(score<70) weaknesses.push(`${sub} (${score}%)`); } else { chartData.push(0); weaknesses.push(`No grade: ${sub}`); } }); const avg = numeric.length? numeric.reduce((a,b)=>a+b,0)/numeric.length : 0; let summary='', recommendation=''; if(avg>=85){ summary='Outstanding'; recommendation='Highly Recommended'; } else if(avg>=70){ summary='Solid performance'; recommendation='Recommended with caution'; } else { summary='Needs improvement'; recommendation='Not recommended'; } return { chartData:{ labels:keySubjects.map(s=>s.charAt(0).toUpperCase()+s.slice(1)), scores:chartData }, summary, strengths, weaknesses, recommendation }; }
+
+    function renderChartOrPlaceholder(analysis){
+      const canvas = document.getElementById('analyticsChart');
+      const placeholder = document.getElementById('chartPlaceholder');
+      const hasData = Array.isArray(analysis.chartData.scores) && analysis.chartData.scores.some(v=> v>0);
+      if(!hasData){ // show placeholder
+        placeholder.style.display = 'flex';
+        canvas.style.display = 'none';
+      } else {
+        placeholder.style.display = 'none';
+        canvas.style.display = 'block';
+        const ctx = canvas.getContext('2d');
+        if(window.Chart){ if(analyticsChartInstance) analyticsChartInstance.destroy(); analyticsChartInstance = new Chart(ctx, { type:'radar', data:{ labels: analysis.chartData.labels, datasets:[{ label:'Core Subject (%)', data: analysis.chartData.scores, backgroundColor:'rgba(33,150,243,0.15)', borderColor:'rgb(33,150,243)' }] }, options:{ responsive:true, maintainAspectRatio:false, scales:{ r:{ suggestedMin:0, suggestedMax:100 } } } }); }
+        else { drawBarFallback('analyticsChart', analysis.chartData.labels, analysis.chartData.scores); }
+      }
+    }
+
+    function showInterviewReport(student){
+      const titleEl = document.getElementById('analyticsModalTitle');
+      titleEl.textContent = `Interview Report for ${student.name}`;
+      document.getElementById('analyticsChartSubtitle').textContent = `Core subjects performance for ${student.name}`;
+      const analysis = analyzeStudentForInterview(student.grades);
+
+      // populate student summary on the right
+      const summaryEl = document.getElementById('analyticsStudentSummary');
+      const shortHtml = `<div class="summary-card student-summary-card"><div class="student-avatar">${(student.name||'S').charAt(0).toUpperCase()}</div><div class="student-meta"><div class="student-name-small">${student.name}</div><div class="student-id-small">${student.id? '('+student.id+')':''}</div><div class="student-stats">Reports: <strong>${student.interviewReport?1:0}</strong> • Subjects: <strong>${Object.keys(student.grades||{}).length}</strong></div></div></div>`;
+      summaryEl.innerHTML = shortHtml;
+
+      renderChartOrPlaceholder(analysis);
+
+      let html = `<h3>Summary</h3><p>${analysis.summary}</p><h4>Strengths</h4><ul>`;
+      analysis.strengths.forEach(s=> html += `<li>${s}</li>`);
+      html += `</ul><h4>Weaknesses</h4><ul>`;
+      analysis.weaknesses.forEach(w=> html += `<li>${w}</li>`);
+      html += `</ul><h4>Recommendation</h4><p>${analysis.recommendation}</p>`;
+      document.getElementById('analyticsReportText').innerHTML = html;
+      document.getElementById('analyticsModal').style.display='flex';
+    }
+
+    function drawRadarWithChart(chartData){ const ctx = document.getElementById('analyticsChart').getContext('2d'); if(analyticsChartInstance) analyticsChartInstance.destroy(); analyticsChartInstance = new Chart(ctx, { type:'radar', data:{ labels: chartData.labels, datasets:[{ label:'Core Subject (%)', data: chartData.scores, backgroundColor:'rgba(33,150,243,0.2)', borderColor:'rgb(33,150,243)' }] }, options:{ responsive:true, maintainAspectRatio:false, scales:{ r:{ suggestedMin:0, suggestedMax:100 } } } }); }
+
+    function drawBarFallback(canvasId, labels, values){
+      const canvas = document.getElementById(canvasId);
+      const dpr = window.devicePixelRatio||1;
+      const cssW = canvas.clientWidth||canvas.width;
+      const cssH = canvas.clientHeight||canvas.height;
+      canvas.width = Math.round(cssW*dpr);
+      canvas.height = Math.round(cssH*dpr);
+      canvas.style.width = cssW+'px';
+      canvas.style.height = cssH+'px';
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      ctx.clearRect(0,0,cssW,cssH);
+      if(!labels || labels.length===0){ ctx.fillStyle='#666'; ctx.font='14px sans-serif'; ctx.fillText('No data',10,24); return; }
+      const pad = 48;
+      const w = cssW - pad*2;
+      const h = cssH - pad*2;
+      const max = Math.max(100, ...values);
+      // draw y grid lines and ticks
+      ctx.strokeStyle = '#f1f5f9'; ctx.lineWidth = 1;
+      const ticks = 5;
+      ctx.fillStyle = '#6b7280'; ctx.font='12px sans-serif';
+      for(let i=0;i<=ticks;i++){
+        const y = pad + (i/ticks)*h;
+        ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(pad + w, y); ctx.stroke();
+        const tickVal = Math.round(max * (1 - i/ticks));
+        ctx.fillText(tickVal.toString(), 8, y+4);
+      }
+      // axes line
+      ctx.strokeStyle = '#e6e7eb'; ctx.beginPath(); ctx.moveTo(pad, pad); ctx.lineTo(pad, pad+h); ctx.lineTo(pad + w, pad + h); ctx.stroke();
+      // bars
+      const barCount = values.length;
+      const gapRatio = 0.2; // spacing between bars
+      const totalGap = (barCount+1) * (gapRatio * w / Math.max(barCount,1));
+      const availW = w - totalGap;
+      const barW = Math.max(8, availW / Math.max(barCount,1));
+      let x = pad + (gapRatio * w / Math.max(barCount,1));
+      for(let i=0;i<barCount;i++){
+        const val = values[i] || 0;
+        const barH = (val / max) * h;
+        const bx = x + i*(barW + (gapRatio * w / Math.max(barCount,1)));
+        const by = pad + h - barH;
+        // shadow / rounded bar
+        ctx.fillStyle = 'rgba(34,197,94,0.9)';
+        roundRect(ctx, bx, by, barW, barH, 6, true, false);
+        // label
+        ctx.fillStyle = '#222'; ctx.font='12px sans-serif'; const lbl = labels[i]; const txtW = ctx.measureText(lbl).width;
+        const tx = bx + (barW/2) - (txtW/2);
+        ctx.fillText(lbl, Math.max(pad, tx), pad + h + 16);
+      }
+      // helper: rounded rect
+      function roundRect(ctx,x,y,w,h,r,fill,stroke){ if(typeof r==='undefined') r=5; ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); if(fill) ctx.fill(); if(stroke) ctx.stroke(); }
+    }
+
+    // Toast helper
+    function showToast(message, type='info', timeout=3500){
+      const container = document.getElementById('toastContainer');
+      if(!container) return console.log(message);
+      const el = document.createElement('div');
+      el.className = 'toast';
+      el.style.cssText = 'background:#111827;color:#fff;padding:10px 14px;border-radius:8px;box-shadow:0 8px 20px rgba(2,6,23,0.2);min-width:180px;transition:opacity .3s,transform .3s';
+      if(type==='success') el.style.background = '#065f46';
+      if(type==='error') el.style.background = '#7f1d1d';
+      el.textContent = message;
+      container.appendChild(el);
+      setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateY(6px)'; setTimeout(()=>el.remove(),400); }, timeout);
+    }
+
+    // Student selector modal: opens a searchable list and calls onSelect(student) when chosen
+    function openStudentSelector(onSelect){
+      const modal = document.getElementById('studentSelectorModal');
+      const list = document.getElementById('studentSelectorList');
+      const search = document.getElementById('studentSelectorSearch');
+      const instr = document.getElementById('studentSelectorInstructions');
+      function renderList(filter=''){
+        const users = getUsersFromLocal().filter(u=> (u.userType||'').toLowerCase() === 'student');
+        const q = (filter||'').toLowerCase();
+        list.innerHTML = '';
+        const filtered = users.filter(u=> (u.fullName||u.email||'').toLowerCase().includes(q));
+        if(filtered.length===0){ list.innerHTML = '<p style="color:#666;padding:8px">No students found.</p>'; return; }
+        filtered.forEach(u=>{
+          const row = document.createElement('div');
+          row.style.cssText = 'padding:10px;cursor:pointer;border-bottom:1px solid #f3f4f6';
+          row.tabIndex = 0;
+          row.innerHTML = `<strong style="display:block">${u.fullName||u.email}</strong><span style="font-size:12px;color:#6b7280">${u.email||''} • ${u.schoolId||''}</span>`;
+          row.addEventListener('click', ()=>{ modal.style.display='none'; if(onSelect) onSelect({ email: u.email, name: u.fullName||u.email, grades: u.grades||{}, interviewReport: u.interviewReport||'' }); });
+          list.appendChild(row);
+        });
+      }
+      search.value=''; renderList('');
+      // show/hide instructions when the search box is empty
+      function refreshInstructions(){ if(!instr) return; if((search.value||'').trim()===''){ instr.style.display='block'; } else { instr.style.display='none'; } }
+      refreshInstructions();
+      search.oninput = (ev)=>{ renderList(ev.target.value); refreshInstructions(); };
+      // If user presses Enter with an empty field, show a short instructions page in analytics modal
+      search.onkeydown = (ev)=>{ if(ev.key=== 'Enter'){ ev.preventDefault(); if((search.value||'').trim()===''){ modal.style.display='none'; if(onSelect) onSelect(null); // caller will handle null -> show instructions
+            // show quick instructions
+            document.getElementById('analyticsModalTitle').textContent = 'How to use Interview Reports';
+            document.getElementById('analyticsChartSubtitle').textContent = '';
+            document.getElementById('analyticsReportText').innerHTML = '<h3>Instructions</h3><ul><li>To view an interview report: type the student\'s name above and select the student from the list.</li><li>If the student has grades, the report will show core subject performance and a recommendation.</li><li>Use the Edit button on a student card to add grades or a custom interview note.</li></ul>';
+            document.getElementById('analyticsModal').style.display='flex';
+          } } };
+      document.getElementById('studentSelectorClose').onclick = ()=>{ modal.style.display='none'; if(onSelect) onSelect(null); };
+      modal.style.display = 'flex';
+    }
+
+    // Close buttons and modal helpers
+    document.getElementById('edit-close-btn').addEventListener('click', ()=> document.getElementById('editModal').style.display='none');
+    document.getElementById('add-close-btn').addEventListener('click', ()=> document.getElementById('addStudentModal').style.display='none');
+    document.getElementById('analytics-close-btn').addEventListener('click', ()=> document.getElementById('analyticsModal').style.display='none');
+
+    // Init on DOM ready
+    document.addEventListener('DOMContentLoaded', ()=>{
+      // Role-based UI: hide add controls for non-teachers/admins
+      const userEmail = localStorage.getItem('userEmail') || '';
+      const currentUser = getUsersFromLocal().find(u => (u.email||'').toLowerCase() === (userEmail||'').toLowerCase());
+      const role = (currentUser && currentUser.userType) ? (currentUser.userType||'').toLowerCase() : '';
+      if(!(role === 'teacher' || role === 'admin')){
+        const addBtn = document.getElementById('addStudentBtn'); if(addBtn) addBtn.style.display = 'none';
+        const sideAdd = document.getElementById('sidebarAddStudent'); if(sideAdd) sideAdd.style.display = 'none';
+      }
+
+      loadDashboardData();
+      document.getElementById('generateReportBtn').addEventListener('click', ()=>{
+        let reportHtml=''; let high=0,med=0,low=0; let anyGrades=false;
+        students.forEach(s=>{ const r = getInterviewRecommendation(s); if(r.status==='high') high++; if(r.status==='medium') med++; if(r.status==='low') low++; if(s.grades && Object.keys(s.grades).length>0) anyGrades=true; reportHtml += `<div style="margin-bottom:10px;padding-bottom:6px;border-bottom:1px dashed #eee"><h4 style=\"margin:0 0 6px 0\">${s.name} (${s.id})</h4><p style=\"margin:0 0 6px 0;color:#444\">${r.text}</p><p style=\"margin:0;color:#666;font-size:13px\">${s.interviewReport||''}</p></div>`; });
+
+        // Title and subtitle
+        document.getElementById('analyticsModalTitle').textContent = 'Report';
+        document.getElementById('analyticsChartSubtitle').textContent = anyGrades ? 'Overview of student averages' : 'No grade data yet — add grades to populate charts';
+
+        // Left panel: show chart if we have any grade data, otherwise show a friendly placeholder card
+        const canvas = document.getElementById('analyticsChart');
+        const placeholder = document.getElementById('chartPlaceholder');
+        if(anyGrades){
+          // attempt to draw a small aggregated chart
+          placeholder.style.display = 'none';
+          canvas.style.display = 'block';
+          generateAnalyticsChart();
+        } else {
+          canvas.style.display = 'none';
+          placeholder.style.display = 'flex';
+          // inject a clearer empty-state into the placeholder
+          placeholder.innerHTML = `
+            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+              <div style=\"width:88%;height:86%;border-radius:10px;background:linear-gradient(180deg,#fbfdff,#f7fbfb);box-shadow:0 8px 26px rgba(2,6,23,0.06);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px;\">
+                <div style=\"font-size:36px;margin-bottom:8px;opacity:0.85\">📊</div>
+                <div style=\"font-weight:700;margin-bottom:6px\">No chart data</div>
+                <div style=\"color:#6b7280;font-size:13px;text-align:center\">Add grades to students or open an individual student report to see analytics here.</div>
+              </div>
+            </div>`;
         }
 
-        // --- Summary card function (no change) ---
-        function updateSummaryCards() {
-            let reportsGenerated = students.filter(s => s.interviewReport && s.interviewReport !== '').length;
-            let recommended = students.filter(s => getInterviewRecommendation(s).status === 'high').length;
-            let needsImprovement = students.filter(s => getInterviewRecommendation(s).status === 'low' || getInterviewRecommendation(s).status === 'medium').length;
-            totalStudentsCount.textContent = students.length;
-            totalReportsCount.textContent = reportsGenerated;
-            recommendedCount.textContent = recommended;
-            cautionCount.textContent = needsImprovement;
-        }
+        // Right panel: report summary and per-student blocks
+        document.getElementById('analyticsReportText').innerHTML = `<h3 style="margin-top:0">Summary</h3><p style=\"margin:6px 0 12px 0;color:#444\">High: <strong>${high}</strong> &nbsp; Medium: <strong>${med}</strong> &nbsp; Low: <strong>${low}</strong></p><div style=\"max-height:280px;overflow:auto;padding-right:6px\">${reportHtml}</div>`;
 
-        // --- Render cards (UPDATED to add new button) ---
-        function renderCards(data) {
-            studentCardGrid.innerHTML = '';
-            data.forEach(student => {
-                const recommendation = getInterviewRecommendation(student);
-                const card = document.createElement('div');
-                card.classList.add('card', 'student-card');
-                card.dataset.id = student.id; 
-                card.dataset.email = student.email;
-                let gradeList = '<li>No grades added.</li>';
-                if (student.grades && Object.keys(student.grades).length > 0) {
-                     gradeList = Object.entries(student.grades).map(([subject, data]) => `
-                        <li><strong>${subject.charAt(0).toUpperCase() + subject.slice(1)}:</strong> ${data.score} (${data.grade})</li>
-                    `).join('');
-                }
-                card.innerHTML = `
-                    <div class="card-body">
-                        <div class="student-info">
-                            <p class="student-id">${student.id}</p>
-                            <h3 class="student-name">${student.name}</h3>
-                        </div>
-                        <div class="recommendation-badge recommendation-${recommendation.status}">
-                            ${recommendation.text}
-                        </div>
-                        <div class="actions">
-                            <button class="action-btn edit-btn" data-email="${student.email}">Edit</button>
-                            <button class="action-btn report-btn interview-report-btn" data-email="${student.email}">View Report</button>
-                        </div>
-                        <div class="report-section">
-                            <h4>Teacher's Interview Report</h4>
-                            <p>${student.interviewReport || 'No custom report has been added yet.'}</p>
-                        </div>
-                        <button class="accordion-btn">
-                            <span class="accordion-text">Show All Grades</span>
-                            <span class="accordion-icon">&#x25BC;</span>
-                        </button>
-                        <div class="accordion-panel">
-                            <ul class="grade-list">${gradeList}</ul>
-                        </div>
-                    </div>
-                `;
-                studentCardGrid.appendChild(card);
-            });
-            updateSummaryCards();
-        }
-
-        // --- Search functionality (no change) ---
-        studentSearchInput.addEventListener('keyup', function() {
-            const searchTerm = this.value.toLowerCase();
-            const filteredStudents = students.filter(student =>
-                student.name.toLowerCase().includes(searchTerm)
-            );
-            renderCards(filteredStudents);
-        });
-
-        // --- Event listener for all buttons (UPDATED) ---
-        document.addEventListener('click', function(e) {
-            // Edit button
-            if (e.target.classList.contains('edit-btn')) {
-                const studentEmail = e.target.dataset.email;
-                const student = students.find(s => s.email === studentEmail);
-                if (student) {
-                    modalTitle.textContent = 'Edit Student Profile';
-                    document.getElementById('editStudentId').value = student.email; 
-                    document.getElementById('studentName').value = student.name;
-                    document.getElementById('studentName').disabled = true;
-                    populateModalGrades(student.grades);
-                    interviewReportInput.value = student.interviewReport || '';
-                    editModal.style.display = 'flex'; 
-                }
-            }
-            // Accordion button
-            if (e.target.classList.contains('accordion-btn')) {
-                // ... (accordion logic unchanged) ...
-                const button = e.target;
-                const panel = button.nextElementSibling;
-                button.classList.toggle('active');
-                if (panel.style.maxHeight) {
-                    panel.style.maxHeight = null;
-                    button.querySelector('.accordion-text').textContent = 'Show All Grades';
-                    button.querySelector('.accordion-icon').style.transform = 'rotate(0deg)';
-                } else {
-                    panel.style.maxHeight = panel.scrollHeight + "px";
-                    button.querySelector('.accordion-text').textContent = 'Hide All Grades';
-                    button.querySelector('.accordion-icon').style.transform = 'rotate(180deg)';
-                }
-            }
-            // *** NEW: Interview Report Button ***
-            if (e.target.classList.contains('interview-report-btn')) {
-                const studentEmail = e.target.dataset.email;
-                const student = students.find(s => s.email === studentEmail);
-                if (student) {
-                    showInterviewReport(student);
-                }
-            }
-        });
-
-        // --- Add New Student (no change) ---
-        addStudentBtn.addEventListener('click', function() {
-            addStudentForm.reset(); 
-            addStudentError.style.display = "none";
-            addStudentModal.style.display = 'flex'; 
-        });
-        // Load-demo flow removed; demo users are seeded locally by ensureDemoUsers()
-        sidebarAddStudent.addEventListener('click', (e) => {
-             e.preventDefault();
-             addStudentBtn.click();
-        });
-        
-        // --- Add Student Modal Logic (no change) ---
-        addCloseBtn.addEventListener('click', () => addStudentModal.style.display = 'none');
-        addStudentForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            addStudentError.style.display = "none";
-            const student = {
-                fullName: (document.getElementById('addFullName').value||'').trim(),
-                email: ((document.getElementById('addEmail').value||'').trim()||'').toLowerCase(),
-                schoolId: (document.getElementById('addSchoolId').value||'').trim(),
-                phoneNumber: (document.getElementById('addPhone').value||'').trim(),
-                password: document.getElementById('addPassword').value||'',
-                userType: 'student',
-                grades: {},
-                interviewReport: ''
-            };
-            if(!student.fullName || !student.email){ addStudentError.textContent = 'Name and email required'; addStudentError.style.display='block'; return; }
-            try{
-                const users = getUsersFromLocal();
-                if(users.find(u=> (u.email||'').toLowerCase() === student.email)){ addStudentError.textContent = 'User exists'; addStudentError.style.display='block'; return; }
-                users.push(student);
-                localStorage.setItem('users', JSON.stringify(users));
-                showToast('Student added locally', 'success');
-                addStudentModal.style.display = 'none';
-                loadDashboardData();
-            }catch(err){ console.error('addStudent error', err); addStudentError.textContent='Failed to add student'; addStudentError.style.display='block'; }
-        });
-
-
-        // --- Generate Report (no change) ---
-        generateReportBtn.addEventListener('click', function() {
-            let reportHtml = '<h3>Performance Summary</h3>';
-            let highCount = 0, mediumCount = 0, lowCount = 0;
-            students.forEach(student => {
-                const recommendation = getInterviewRecommendation(student);
-                reportHtml += `
-                    <div class="report-section">
-                        <h4>${student.name} (${student.id})</h4>
-                        <p><strong>Recommendation:</strong> <span class="recommendation-badge recommendation-${recommendation.status}">${recommendation.text}</span></p>
-                        <p><strong>Teacher's Notes:</strong> ${student.interviewReport || 'No notes added.'}</p>
-                    </div>
-                `;
-                if (recommendation.status === 'high') highCount++;
-                if (recommendation.status === 'medium') mediumCount++;
-                if (recommendation.status === 'low') lowCount++;
-            });
-            reportHtml += `<br><h4>Overall Analysis</h4>
-                             <p><strong>Highly Recommended:</strong> ${highCount} students</p>
-                             <p><strong>Recommended with Caution:</strong> ${mediumCount} students</p>
-                             <p><strong>Not Recommended:</strong> ${lowCount} students</p>`;
-            reportModalBody.innerHTML = reportHtml;
-            reportModal.style.display = 'flex';
-        });
-        sidebarGenerateReport.addEventListener('click', (e) => {
-             e.preventDefault();
-             generateReportBtn.click();
-        });
-        
-        // --- Populate modal (no change) ---
-        function populateModalGrades(grades) {
-            // (This function is correct, no changes)
-            dynamicSubjectInputs.innerHTML = '';
-            if (grades && Object.keys(grades).length > 0) {
-                for (const subject in grades) {
-                    const group = document.createElement('div');
-                    group.classList.add('form-group', 'grade-input-group');
-                    group.innerHTML = `
-                        <label for="grade-${subject}" class="visually-hidden">${subject}</label>
-                        <input type="text" class="subject-name-input" value="${subject.charAt(0).toUpperCase() + subject.slice(1)}" data-subject-name="${subject}" readonly>
-                        <input type="text" class="grade-score-input" value="${grades[subject].score}" data-subject-score="${subject}" placeholder="Score (e.g., 88%)">
-                        <input type="text" class="grade-letter-input" value="${grades[subject].grade}" data-subject-grade="${subject}" placeholder="Grade (e.g., B+)">
-                    `;
-                    dynamicSubjectInputs.appendChild(group);
-                }
-            } else {
-                dynamicSubjectInputs.innerHTML = '<p style="text-align:center; color: #666;">No grades have been added for this student yet.</p>';
-            }
-        }
-
-        // --- Add new subject (no change) ---
-        addNewSubjectBtn.addEventListener('click', function() {
-            // (This function is correct, no changes)
-            const newSubjectName = newSubjectNameInput.value.trim().toLowerCase();
-            const newSubjectScore = newSubjectGradeInput.value.trim();
-            if (newSubjectName && newSubjectScore) {
-                const noGradesMsg = dynamicSubjectInputs.querySelector('p');
-                if (noGradesMsg) noGradesMsg.remove();
-                const group = document.createElement('div');
-                group.classList.add('form-group', 'grade-input-group');
-                group.innerHTML = `
-                    <label for="grade-${newSubjectName}" class="visually-hidden">${newSubjectName}</label>
-                    <input type="text" class="subject-name-input" value="${newSubjectName.charAt(0).toUpperCase() + newSubjectName.slice(1)}" data-subject-name="${newSubjectName}" readonly>
-                    <input type="text" class="grade-score-input" value="${newSubjectScore}" data-subject-score="${newSubjectName}" placeholder="Score (e.g., 88%)">
-                    <input type="text" class="grade-letter-input" value="" data-subject-grade="${newSubjectName}" placeholder="Grade (e.g., B+)">
-                `;
-                dynamicSubjectInputs.appendChild(group);
-                newSubjectNameInput.value = '';
-                newSubjectGradeInput.value = '';
-            } else {
-                alert('Please enter both a subject name and a score.');
-            }
-        });
-
-        // --- Close modal (no change) ---
-        editCloseBtn.addEventListener('click', function() {
-            editModal.style.display = 'none';
-        });
-
-        // --- Save changes (no change) ---
-        editForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const originalEmail = document.getElementById('editStudentId').value || '';
-            const customReport = interviewReportInput.value || '';
-            const newGrades = {};
-            const scoreInputs = document.querySelectorAll('#dynamicSubjectInputs input[data-subject-score]');
-            const gradeInputs = document.querySelectorAll('#dynamicSubjectInputs input[data-subject-grade]');
-            const nameInputs = document.querySelectorAll('#dynamicSubjectInputs input.subject-name-input');
-            for(let i = 0; i < scoreInputs.length; i++){
-                const subj = (nameInputs[i].dataset.subjectName || nameInputs[i].value.trim()).toLowerCase();
-                const score = scoreInputs[i].value.trim();
-                let grade = gradeInputs[i].value.trim();
-                if(subj && score){
-                    if(!grade){ const sc = parseInt(score); if(sc>=90) grade='A'; else if(sc>=80) grade='B'; else if(sc>=70) grade='C'; else if(sc>=60) grade='D'; else grade='F'; gradeInputs[i].value = grade; }
-                    newGrades[subj] = { score: score, grade: grade };
-                }
-            }
-            try{
-                const users = getUsersFromLocal();
-                const idx = users.findIndex(u=> (u.email||'').toLowerCase() === (originalEmail||'').toLowerCase());
-                if(idx===-1){ alert('Student not found'); return; }
-                // Prevent duplicate email if changed (email editing not present in modal here)
-                // Update fields
-                users[idx].grades = Object.assign({}, users[idx].grades||{}, newGrades);
-                users[idx].interviewReport = customReport || users[idx].interviewReport || '';
-                localStorage.setItem('users', JSON.stringify(users));
-                alert('Changes saved!');
-                editModal.style.display = 'none';
-                loadDashboardData();
-            }catch(err){ console.error('save edit error', err); alert('Failed to save changes'); }
-        });
-
-        // --- Link sidebar "Add Grade" button ---
-        sidebarAddGrade.addEventListener('click', function(e) {
-            e.preventDefault();
-            alert("Please click the 'Edit' button on a specific student to add or change their grades.");
-        });
-
-        // --- *** NEW: ANALYTICS BUTTON LOGIC *** ---
-        // sidebarAnalytics handler removed; Student Performance button handles analytics view
-
-        function generateAnalyticsChart() {
-            const ctx = document.getElementById('analyticsChart').getContext('2d');
-            const studentAverages = students.map(student => {
-                let totalScore = 0;
-                let subjectCount = 0;
-                if (student.grades && Object.keys(student.grades).length > 0) {
-                    for (const subject in student.grades) {
-                        totalScore += parseInt(student.grades[subject].score);
-                        subjectCount++;
-                    }
-                }
-                const average = (subjectCount > 0) ? (totalScore / subjectCount) : 0;
-                return { name: student.name, average: average };
-            });
-            studentAverages.sort((a, b) => b.average - a.average);
-            const labels = studentAverages.map(s => s.name);
-            const data = studentAverages.map(s => s.average);
-            if (analyticsChartInstance) {
-                analyticsChartInstance.destroy();
-            }
-            analyticsChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Overall Student Average (%)',
-                        data: data,
-                        borderColor: 'rgb(75, 192, 192)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        fill: true,
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Average Score'}},
-                        x: { title: { display: true, text: 'Students'}}
-                    }
-                }
-            });
-        }
-        
-        // --- *** NEW: INTERVIEW REPORT FUNCTIONS *** ---
-        
-        // This button now gives a helpful message
-        sidebarInterviewReport.addEventListener('click', (e) => {
-            e.preventDefault();
-            alert("Please click the 'View Report' button on a specific student's card to generate a detailed interview report.");
-        });
-
-        function showInterviewReport(student) {
-            // Set the title
-            analyticsModalTitle.textContent = `Interview Report for ${student.name}`;
-            analyticsChartSubtitle.textContent = `Core subject performance for ${student.name}.`;
-
-            // 1. Analyze the data
-            const analysis = analyzeStudentForInterview(student.grades);
-
-            // 2. Draw the chart
-            drawRadarChart(analysis.chartData);
-
-            // 3. Generate and set the text
-            let reportHtml = `
-                <h3>Analysis Summary</h3>
-                <p>${analysis.summary}</p>
-                <h3>Strengths</h3>
-                <ul>`;
-            
-            analysis.strengths.forEach(s => {
-                reportHtml += `<li><span class="strength">STRONG:</span> ${s}</li>`;
-            });
-            if (analysis.strengths.length === 0) reportHtml += `<li>No significant strengths identified in key areas.</li>`;
-            
-            reportHtml += `</ul>
-                <h3>Areas for Improvement</h3>
-                <ul>`;
-                
-            analysis.weaknesses.forEach(w => {
-                reportHtml += `<li><span class="weakness">WEAK:</span> ${w}</li>`;
-            });
-            if (analysis.weaknesses.length === 0) reportHtml += `<li>No significant weaknesses found. Well-rounded performance.</li>`;
-
-            reportHtml += `</ul>
-                <h3>Recommendation</h3>
-                <p>${analysis.recommendation}</p>`;
-
-            analyticsReportText.innerHTML = reportHtml;
-
-            // 4. Show the modal
-            analyticsModal.style.display = 'flex';
-        }
-
-        function analyzeStudentForInterview(grades) {
-            const keySubjects = ['programming', 'math', 'physics']; // These are the core subjects we care about
-            let strengths = [];
-            let weaknesses = [];
-            let chartData = [];
-            let numericScores = [];
-
-            const highMark = 85;
-            const lowMark = 70;
-
-            if (!grades || Object.keys(grades).length === 0) {
-                return {
-                    chartData: { labels: keySubjects.map(s => s.charAt(0).toUpperCase() + s.slice(1)), scores: [0, 0, 0] },
-                    summary: "No grades have been added for this student. Cannot perform analysis.",
-                    strengths: [],
-                    weaknesses: ["No data available."],
-                    recommendation: "Not recommended. Please add grades."
-                };
-            }
-
-            keySubjects.forEach(subject => {
-                if (grades[subject]) {
-                    const score = parseInt(grades[subject].score);
-                    chartData.push(score);
-                    numericScores.push(score);
-                    
-                    if (score >= highMark) {
-                        strengths.push(`Excellent performance in ${subject} (${score}%)`);
-                    } else if (score < lowMark) {
-                        weaknesses.push(`Needs significant improvement in ${subject} (${score}%)`);
-                    }
-                } else {
-                    chartData.push(0); // Add 0 if subject is missing
-                    weaknesses.push(`No grade found for the key subject: ${subject}.`);
-                }
-            });
-
-            let summary, recommendation;
-            const avg = numericScores.length ? numericScores.reduce((a, b) => a + b, 0) / numericScores.length : 0;
-
-            if (avg >= highMark) {
-                summary = "This student shows outstanding performance in core subjects.";
-                recommendation = "Highly Recommended for a technical interview.";
-            } else if (avg >= lowMark) {
-                summary = "This student has a solid, passing understanding of core subjects.";
-                recommendation = "Recommended for an interview. May need to review weak areas.";
-            } else {
-                summary = "This student is lagging in one or more core subject areas.";
-                recommendation = "Not Recommended. Student needs to improve foundational knowledge before proceeding.";
-            }
-
-            return {
-                chartData: { labels: keySubjects.map(s => s.charAt(0).toUpperCase() + s.slice(1)), scores: chartData },
-                summary: summary,
-                strengths: strengths,
-                weaknesses: weaknesses,
-                recommendation: recommendation
-            };
-        }
-
-        function drawRadarChart(chartData) {
-            const ctx = document.getElementById('analyticsChart').getContext('2d');
-            
-            if (analyticsChartInstance) {
-                analyticsChartInstance.destroy();
-            }
-
-            analyticsChartInstance = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: chartData.labels, // ['Programming', 'Math', 'Physics']
-                    datasets: [{
-                        label: 'Core Subject Performance (%)',
-                        data: chartData.scores, // [70, 88, 65]
-                        fill: true,
-                        backgroundColor: 'rgba(33, 150, 243, 0.2)',
-                        borderColor: 'rgb(33, 150, 243)',
-                        pointBackgroundColor: 'rgb(33, 150, 243)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgb(33, 150, 243)'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        r: {
-                            angleLines: {
-                                display: true
-                            },
-                            suggestedMin: 0,
-                            suggestedMax: 100,
-                            pointLabels: {
-                                font: {
-                                    size: 14,
-                                    weight: 'bold'
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        }
-                    }
-                }
-            });
-        }
-
-    </script>
+        document.getElementById('analyticsModal').style.display='flex';
+      });
+      // render analytics controls upfront so they're ready when modal opens
+      try{ renderAnalyticsControls(); } catch(e){}
+    });
+  </script>
 </body>
 </html>
