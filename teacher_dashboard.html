@@ -282,7 +282,7 @@
           <div class="card-body">
             <div class="student-info"><p class="student-id">${student.id}</p><h3 class="student-name">${student.name}</h3></div>
             <div class="recommendation-badge recommendation-${rec.status}">${rec.text}</div>
-            <div class="actions"><button class="action-btn edit-btn" data-email="${student.email}">Edit</button><button class="action-btn report-btn interview-report-btn" data-email="${student.email}">View Report</button></div>
+            <div class="actions"><button class="action-btn edit-btn" data-email="${student.email}">Edit</button><button class="action-btn report-btn interview-report-btn" data-email="${student.email}">View Report</button><button class="action-btn delete-btn" data-email="${student.email}" style="background:#ef4444;color:#fff;margin-left:6px">Delete</button></div>
             <button class="accordion-btn"><span class="accordion-text">Show All Grades</span><span class="accordion-icon">▾</span></button>
             <div class="accordion-panel"><ul class="grade-list">${gradeList}</ul></div>
           </div>`;
@@ -293,6 +293,10 @@
 
     // DOM events
     document.addEventListener('click', function(e){
+      // handle remove-subject buttons inside modals
+      if(e.target.classList && e.target.classList.contains('remove-subject-btn')){
+        const btn = e.target; const group = btn.closest('.grade-input-group'); if(group) group.remove(); return;
+      }
       if(e.target.classList.contains('edit-btn')){
         const email = e.target.dataset.email; const student = students.find(s=>s.email===email); if(!student) return;
         document.getElementById('modalTitle').textContent='Edit Student';
@@ -312,6 +316,32 @@
       }
       if(e.target.classList.contains('interview-report-btn')){
         const email = e.target.dataset.email; const student = students.find(s=>s.email===email); if(student) showInterviewReport(student);
+      }
+      // Delete student
+      if(e.target.classList.contains('delete-btn')){
+        const email = e.target.dataset.email;
+        if(!email) return;
+        const name = (students.find(s=>s.email===email)||{}).name || email;
+        if(!confirm(`Delete student ${name}? This cannot be undone locally.`)) return;
+        // Server-mode attempt: try server delete endpoint, otherwise fall back to local deletion
+        if(isServerMode()){
+          try{
+            // try common endpoint; backend may not support this – handle gracefully
+            const resp = await fetch(`${API_BASE}/api/delete-student`,{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }) });
+            const j = await resp.json();
+            if(j && j.success){ showToast('Student deleted on server','success'); await loadDashboardData(); return; }
+            // not supported or failed
+            showToast(j && j.message ? j.message : 'Server deletion failed','error');
+            return;
+          } catch(err){ console.warn('server delete failed', err); showToast('Server deletion not available. Disable server mode to delete locally.','error'); return; }
+        }
+        // Local deletion
+        try{
+          const users = getUsersFromLocal();
+          const idx = users.findIndex(u=> (u.email||'').toLowerCase() === (email||'').toLowerCase());
+          if(idx!==-1){ users.splice(idx,1); localStorage.setItem('users', JSON.stringify(users)); showToast('Student removed locally','success'); await loadDashboardData(); }
+          else { showToast('Student not found locally','error'); }
+        }catch(err){ console.error(err); showToast('Failed to delete student','error'); }
       }
     });
 
@@ -394,13 +424,33 @@
     });
 
     // Populate modal grades
-    function populateModalGrades(grades){ const container = document.getElementById('dynamicSubjectInputs'); container.innerHTML=''; if(!grades||Object.keys(grades).length===0){ container.innerHTML='<p style="text-align:center;color:#666">No grades yet.</p>'; return; } for(const subject in grades){ const g = grades[subject]; const group = document.createElement('div'); group.className='form-group grade-input-group'; group.innerHTML = `<input class="subject-name-input" value="${subject}" data-subject-name="${subject}" readonly><input class="grade-score-input" value="${g.score}" data-subject-score="${subject}" placeholder="Score"><input class="grade-letter-input" value="${g.grade||''}" data-subject-grade="${subject}" placeholder="Grade">`; container.appendChild(group); } }
+    function populateModalGrades(grades){
+      const container = document.getElementById('dynamicSubjectInputs'); container.innerHTML='';
+      if(!grades||Object.keys(grades).length===0){ container.innerHTML='<p style="text-align:center;color:#666">No grades yet.</p>'; return; }
+      for(const subject in grades){
+        const g = grades[subject];
+        const group = document.createElement('div');
+        group.className='form-group grade-input-group';
+        group.innerHTML = `
+          <input class="subject-name-input" value="${subject}" data-subject-name="${subject}" placeholder="Subject">
+          <input class="grade-score-input" value="${g.score}" data-subject-score="${subject}" placeholder="Score">
+          <input class="grade-letter-input" value="${g.grade||''}" data-subject-grade="${subject}" placeholder="Grade">
+          <button type="button" class="remove-subject-btn action-btn" style="background:#ef4444;color:#fff;margin-left:8px;padding:6px 8px">Remove</button>
+        `;
+        container.appendChild(group);
+      }
+    }
 
     document.getElementById('addNewSubjectBtn').addEventListener('click', function(){
-      const name = (document.getElementById('newSubjectName').value||'').trim().toLowerCase();
+      const name = (document.getElementById('newSubjectName').value||'').trim();
       const score = (document.getElementById('newSubjectGrade').value||'').trim();
       if(!name||!score){ showToast('Enter subject and score','error'); return; }
-      const container = document.getElementById('dynamicSubjectInputs'); const no = container.querySelector('p'); if(no) no.remove(); const group = document.createElement('div'); group.className='form-group grade-input-group'; group.innerHTML = `<input class="subject-name-input" value="${name}" data-subject-name="${name}" readonly><input class="grade-score-input" value="${score}" data-subject-score="${name}" placeholder="Score"><input class="grade-letter-input" value="" data-subject-grade="${name}" placeholder="Grade">`; container.appendChild(group); document.getElementById('newSubjectName').value=''; document.getElementById('newSubjectGrade').value=''; showToast('Subject added to editor','success'); });
+      const container = document.getElementById('dynamicSubjectInputs'); const no = container.querySelector('p'); if(no) no.remove();
+      const group = document.createElement('div'); group.className='form-group grade-input-group';
+      group.innerHTML = `<input class="subject-name-input" value="${name}" placeholder="Subject"><input class="grade-score-input" value="${score}" placeholder="Score"><input class="grade-letter-input" value="" placeholder="Grade"><button type="button" class="remove-subject-btn action-btn" style="background:#ef4444;color:#fff;margin-left:8px;padding:6px 8px">Remove</button>`;
+      container.appendChild(group);
+      document.getElementById('newSubjectName').value=''; document.getElementById('newSubjectGrade').value=''; showToast('Subject added to editor','success');
+    });
 
     // Save edits (local)
     document.getElementById('editForm').addEventListener('submit', async function(e){
