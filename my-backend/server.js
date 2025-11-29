@@ -1212,6 +1212,56 @@ app.get('/api/approve-teacher', async (req, res) => {
     }
 });
 
+// --- Health check route ---
+app.get('/api/health', (req, res) => {
+    return res.status(200).json({ success: true, message: 'OK' });
+});
+
+// --- Seed demo data endpoint (dev only) ---
+app.post('/api/seed-demo', (req, res) => {
+    try {
+        // A small seed dataset (keeps the same shape as database.json)
+        const seedData = {
+            "demo.student1@example.com": {
+                "password": "Temp1234",
+                "full_name": "Demo Student One",
+                "user_type": "student",
+                "school_id": "DS-001",
+                "phone_number": "9990001111",
+                "grades": { "math": { "score": "91", "grade": "A" }, "programming": { "score": "87", "grade": "B+" } },
+                "interview_report": "Strong candidate for technical roles.",
+                "approved": true
+            },
+            "demo.student2@example.com": {
+                "password": "Temp1234",
+                "full_name": "Demo Student Two",
+                "user_type": "student",
+                "school_id": "DS-002",
+                "phone_number": "9990002222",
+                "grades": { "math": { "score": "72", "grade": "C" }, "programming": { "score": "68", "grade": "D+" } },
+                "interview_report": "Needs improvement in programming fundamentals.",
+                "approved": true
+            }
+        };
+
+        // Merge seedData into existing mockUserDatabase
+        mockUserDatabase = Object.assign({}, mockUserDatabase || {}, seedData);
+
+        // Persist to file if possible
+        try {
+            fs.writeFileSync(dbPath, JSON.stringify(mockUserDatabase, null, 2), 'utf8');
+            console.log('Seed data written to database.json');
+        } catch (e) {
+            console.warn('Could not persist seed data to database.json:', e && e.message ? e.message : e);
+        }
+
+        return res.json({ success: true, message: 'Demo students seeded locally.' });
+    } catch (err) {
+        console.error('seed-demo error:', err && err.stack ? err.stack : err);
+        return res.status(500).json({ success: false, message: 'Failed to seed demo data', error: (err && err.message) || String(err) });
+    }
+});
+
 
 // --- VERCEL DEPLOYMENT ---
 // This runs the server *only* when you are testing locally

@@ -104,6 +104,7 @@
 
                 <div class="dashboard-controls">
                     <button id="addStudentBtn" class="action-btn add-btn">Add New Student</button>
+                    <button id="loadDemoBtn" class="action-btn">Load Demo Students</button>
                     <button id="generateReportBtn" class="action-btn">Generate Report</button>
                 </div>
                 
@@ -464,6 +465,25 @@
             addStudentError.style.display = "none";
             addStudentModal.style.display = 'flex'; 
         });
+        // --- Load Demo Students ---
+        const loadDemoBtn = document.getElementById('loadDemoBtn');
+        if (loadDemoBtn) {
+            loadDemoBtn.addEventListener('click', async function() {
+                try {
+                    const resp = await fetch('/api/seed-demo', { method: 'POST' });
+                    const data = await resp.json();
+                    if (data && data.success) {
+                        alert('Demo students loaded. Refreshing dashboard...');
+                        loadDashboardData();
+                    } else {
+                        alert('Failed to load demo students: ' + (data && data.message ? data.message : JSON.stringify(data)));
+                    }
+                } catch (err) {
+                    console.error('Error seeding demo students:', err);
+                    alert('Error seeding demo students. See console for details.');
+                }
+            });
+        }
         sidebarAddStudent.addEventListener('click', (e) => {
              e.preventDefault();
              addStudentBtn.click();
