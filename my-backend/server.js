@@ -602,6 +602,29 @@ const ROLE_EXEMPT = (() => {
 // This temporarily holds users during the signup process (in-memory, okay for transient data)
 const tempUserDatabase = {};
 
+// OTP settings
+const OTP_TTL_SECONDS = parseInt(process.env.OTP_TTL_SECONDS || '300', 10); // default 5 minutes
+const OTP_CLEANUP_INTERVAL_SECONDS = parseInt(process.env.OTP_CLEANUP_INTERVAL_SECONDS || '60', 10);
+
+function cleanupExpiredTempUsers() {
+    try {
+        const now = Date.now();
+        const keys = Object.keys(tempUserDatabase);
+        for (const k of keys) {
+            const t = tempUserDatabase[k];
+            if (t && t.expiresAt && now > t.expiresAt) {
+                console.log('cleanup: removing expired temp user for', k);
+                delete tempUserDatabase[k];
+            }
+        }
+    } catch (e) {
+        console.error('cleanupExpiredTempUsers error:', e);
+    }
+}
+
+// Periodic cleanup in dev and prod; lightweight operation
+setInterval(cleanupExpiredTempUsers, Math.max(10, OTP_CLEANUP_INTERVAL_SECONDS) * 1000);
+
 // --- Supabase client (server-side) ---
 const { createClient } = require('@supabase/supabase-js');
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -799,26 +822,32 @@ app.post('/api/my-profile', (req, res) => {
 // --- GET ALL STUDENTS ---
 app.get('/api/get-all-students', (req, res) => {
     (async () => {
-        if (!supabase) return res.json({ success: false, message: 'Server not configured for database access.' });
-        
         try {
-            const { data, error } = await supabase.from('users').select('*').eq('user_type', 'student');
-            
-            if (error) {
-                console.error('Supabase error fetching students:', error.message || error);
-                return res.json({ success: false, message: 'Failed to fetch students from database.' });
+            if (supabase) {
+                const { data, error } = await supabase.from('users').select('*').eq('user_type', 'student');
+                if (error) {
+                    console.error('Supabase error fetching students:', error.message || error);
+                    return res.json({ success: false, message: 'Failed to fetch students from database.' });
+                }
+                const studentList = (data || []).map(s => ({ id: s.school_id, email: s.email, name: s.full_name, grades: s.grades || {}, interviewReport: s.interview_report || '' }));
+                return res.json({ success: true, students: studentList });
             }
-            
-            const studentList = (data || []).map(s => ({ 
-                id: s.school_id, 
-                email: s.email, 
-                name: s.full_name, 
-                grades: s.grades || {}, 
-                interviewReport: s.interview_report || '' 
-            }));
-            
+
+            // Local fallback: read students from mockUserDatabase (loaded from database.json)
+            const studentList = [];
+            for (const emailKey of Object.keys(mockUserDatabase)) {
+                const u = mockUserDatabase[emailKey] || {};
+                const userType = (u.user_type || u.userType || u.usertype || '').toString().toLowerCase();
+                if (userType === 'student') {
+                    const id = u.school_id || u.schoolId || u.schoolid || null;
+                    const name = u.full_name || u.fullName || u.fullname || '';
+                    const grades = u.grades || {};
+                    const interviewReport = u.interview_report || u.interviewReport || u.interviewreport || '';
+                    studentList.push({ id, email: emailKey, name, grades, interviewReport });
+                }
+            }
             return res.json({ success: true, students: studentList });
-            
+
         } catch (err) {
             console.error('Error fetching students:', err);
             res.json({ success: false, message: 'Internal Server Error' });
@@ -880,38 +909,58 @@ app.post('/api/update-student-data', (req, res) => {
 // --- TEACHER ADD STUDENT ROUTE ---
 app.post('/api/teacher-add-student', (req, res) => {
     (async () => {
-        if (!supabase) return res.json({ success: false, message: 'Server not configured for database access.' });
-        
         const { email, fullName, schoolId, phoneNumber, password } = req.body;
-        
+        console.log('teacher-add-student called. supabase configured:', !!supabase, 'body:', { email, fullName, schoolId, phoneNumber });
+
         try {
-            // Check if user already exists
+            // Check if user already exists (works with Supabase or local fallback)
             const existingUser = await getUserByEmail(email);
             if (existingUser) {
                 return res.json({ success: false, message: 'This email is already registered.' });
             }
 
             const record = {
-                email: email.toLowerCase(),
-                password,
-                full_name: fullName,
+                email: (email || '').toString().trim().toLowerCase(),
+                password: password || '',
+                full_name: fullName || '',
                 user_type: 'student',
-                school_id: schoolId,
-                phone_number: phoneNumber,
+                school_id: schoolId || null,
+                phone_number: phoneNumber || null,
                 grades: {},
                 interview_report: '',
                 approved: true // Students are approved immediately
             };
-            
-            const { error } = await supabase.from('users').insert([record]);
-            
-            if (error) {
-                console.error('Supabase insert error:', error.message || error);
-                return res.json({ success: false, message: 'Failed to create student.' });
+
+            if (supabase) {
+                const { error } = await supabase.from('users').insert([record]);
+                if (error) {
+                    console.error('Supabase insert error:', error.message || error);
+                    return res.json({ success: false, message: 'Failed to create student.' });
+                }
+                return res.json({ success: true, message: 'New student created successfully!' });
+            } else {
+                // Local fallback: write to mockUserDatabase and persist to database.json if possible
+                const key = record.email;
+                mockUserDatabase[key] = mockUserDatabase[key] || {};
+                mockUserDatabase[key].password = record.password;
+                mockUserDatabase[key].full_name = record.full_name;
+                mockUserDatabase[key].user_type = record.user_type;
+                mockUserDatabase[key].school_id = record.school_id;
+                mockUserDatabase[key].phone_number = record.phone_number;
+                mockUserDatabase[key].grades = {};
+                mockUserDatabase[key].interview_report = '';
+                mockUserDatabase[key].approved = true;
+
+                try {
+                    fs.writeFileSync(dbPath, JSON.stringify(mockUserDatabase, null, 2), 'utf8');
+                    console.log('Local database.json updated with new student:', key);
+                } catch (e) {
+                    console.warn('Could not persist new student to database.json, in-memory only:', e && e.message ? e.message : e);
+                }
+
+                return res.json({ success: true, message: 'New student created successfully! (local fallback)' });
             }
-            
-            return res.json({ success: true, message: 'New student created successfully!' });
-            
+
         } catch (err) {
             console.error('Teacher add student error:', err);
             res.json({ success: false, message: 'Internal Server Error' });
@@ -943,13 +992,15 @@ app.post('/api/send-verification', async (req, res) => {
     }
 
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    // Store in temp in-memory DB for signup flow (transient data)
-    tempUserDatabase[key] = { fullName, schoolId, userType, phoneNumber, code: verificationCode, verified: false };
-    console.log(`Temp user stored for ${key}. Code: ${verificationCode}`);
+    // Store in temp in-memory DB for signup flow (transient data) with expiry
+    const now = Date.now();
+    const expiresAt = now + OTP_TTL_SECONDS * 1000;
+    tempUserDatabase[key] = { fullName, schoolId, userType, phoneNumber, code: verificationCode, verified: false, createdAt: now, expiresAt };
+    console.log(`Temp user stored for ${key}. Code: ${verificationCode} (expires in ${OTP_TTL_SECONDS}s)`);
 
     if (skipEmail) {
         tempUserDatabase[key].verified = true;
-        return res.json({ success: true, message: 'Skipping email.', code: verificationCode });
+        return res.json({ success: true, message: 'Skipping email.', code: verificationCode, expiresAt: tempUserDatabase[key].expiresAt });
     }
 
     const mailOptions = {
@@ -1016,23 +1067,49 @@ app.get('/api/debug-temp-users', (req, res) => {
 
 // STEP 3: Create User
 app.post('/api/create-user', async (req, res) => {
-    if (!supabase) return res.json({ success: false, message: 'Server not configured for database access.' });
-    
     console.log('Create user attempt received!');
     const { email, password } = req.body;
-    const key = (email || '').toString().trim().toLowerCase();
-    const tempUser = tempUserDatabase[key];
-    
-    if (!tempUser || !tempUser.verified) {
-        console.warn('Create user blocked: tempUser missing or not verified for', email);
-        return res.json({ success: false, message: 'Verification required.' });
+
+    const rawKey = (email || '').toString();
+    const key = rawKey.trim().toLowerCase();
+
+    // Try direct lookup first
+    let tempUser = tempUserDatabase[key];
+    let actualKey = key;
+
+    // Fallback: try to find a matching key ignoring case/whitespace if direct lookup fails
+    if (!tempUser) {
+        const foundKey = Object.keys(tempUserDatabase).find(k => k.toLowerCase() === key || k.replace(/\s+/g,'').toLowerCase() === key.replace(/\s+/g,'').toLowerCase());
+        if (foundKey) {
+            tempUser = tempUserDatabase[foundKey];
+            actualKey = foundKey;
+            console.log('create-user: resolved fallback temp key ->', foundKey);
+        }
+    }
+
+    if (!tempUser) {
+        console.warn('Create user blocked: tempUser missing for', email);
+        return res.json({ success: false, message: 'Verification required. No pending verification found for this email.' });
+    }
+
+    // Check expiry if present
+    if (tempUser.expiresAt && Date.now() > tempUser.expiresAt) {
+        console.warn('Create user blocked: verification expired for', actualKey);
+        // remove expired entry
+        try { delete tempUserDatabase[actualKey]; } catch (e) {}
+        return res.json({ success: false, message: 'Verification code expired. Please request a new verification code.' });
+    }
+
+    if (!tempUser.verified) {
+        console.warn('Create user blocked: not verified for', actualKey);
+        return res.json({ success: false, message: 'Verification required. Please verify the email before creating the account.' });
     }
 
     // Ensure user_type is set; default to 'student' when missing
     const userType = (tempUser.userType || 'student').toString().toLowerCase();
     // Students are approved automatically, Teachers require admin approval
     const isApproved = (userType === 'student'); 
-    
+
     const record = {
         email: key,
         password: password,
@@ -1046,22 +1123,13 @@ app.post('/api/create-user', async (req, res) => {
     };
 
     try {
-        // Use insert instead of upsert to avoid overwriting existing user data if a race condition occurs
-        const { error } = await supabase.from('users').insert([record]); 
-        
-        if (error) {
-             // Handle case where user was created between validation and insert
-             if (error.code === '23505') { // PostgreSQL unique violation error code
-                 return res.json({ success: false, message: 'This email is already registered.' });
-             }
-            console.error('Create user error (detailed):', error.message || error);
-            return res.json({ success: false, message: 'Failed to create user.' });
-        }
-
-        console.log('User created in Supabase:', email);
+        // Use the helper which will prefer Supabase and fallback to local JSON
+        const result = await upsertUser(record);
+        console.log('Create user: upsert result:', Array.isArray(result) ? JSON.stringify(result[0]) : JSON.stringify(result));
     } catch (err) {
         console.error('Create user error (detailed):', err && err.message ? err.message : err);
-        return res.json({ success: false, message: 'Failed to create user.' });
+        // In dev return the DB error to help debugging; remove in production
+        return res.json({ success: false, message: 'Failed to create user.', error: err && err.message ? err.message : String(err) });
     }
 
     if (userType === 'teacher') {
@@ -1085,10 +1153,10 @@ app.post('/api/create-user', async (req, res) => {
             console.error('Failed to send admin notification:', error);
         }
 
-        delete tempUserDatabase[key]; 
+        try { delete tempUserDatabase[actualKey]; } catch (e) {}
         return res.json({ success: true, userType: 'teacher', message: 'Account created! Please wait for admin approval.' });
     } else {
-        delete tempUserDatabase[key]; 
+        try { delete tempUserDatabase[actualKey]; } catch (e) {}
         return res.json({ success: true, userType: 'student', message: 'Account created successfully!' });
     }
 });
