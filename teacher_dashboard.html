@@ -38,7 +38,7 @@
                     <li class="menu-item"><a href="#">All Students</a></li>
                     <li class="menu-item"><a href="#">Student Performance</a></li>
                     <li class="menu-item"><a href="#" id="sidebarInterviewReport">Interview Reports</a></li>
-                    <li class="menu-item"><a href="#" id="sidebarAnalytics">Analytics</a></li>
+                      <!-- Analytics link removed; use Student Performance for analytics -->
                 </ul>
             </nav>
         </aside>
@@ -322,7 +322,7 @@
         const sidebarAddStudent = document.getElementById('sidebarAddStudent');
         const sidebarAddGrade = document.getElementById('sidebarAddGrade');
         const sidebarGenerateReport = document.getElementById('sidebarGenerateReport');
-        const sidebarAnalytics = document.getElementById('sidebarAnalytics');
+        // sidebarAnalytics removed; Student Performance button (`sidebarStudentPerformance`) is used instead
         const sidebarInterviewReport = document.getElementById('sidebarInterviewReport'); // <-- NEW
 
 
@@ -339,7 +339,15 @@
                 return;
             }
             
-            // 2. Load all dashboard data from the server
+            // 2. Role-based UI: show/hide add-student controls for teacher/admin only
+            const currentUser = getUsersFromLocal().find(u => (u.email||'').toLowerCase() === (userEmail||'').toLowerCase());
+            const role = (currentUser && currentUser.userType) ? (currentUser.userType||'').toLowerCase() : '';
+            if(!(role === 'teacher' || role === 'admin')){
+                const addBtn = document.getElementById('addStudentBtn'); if(addBtn) addBtn.style.display = 'none';
+                const sideAdd = document.getElementById('sidebarAddStudent'); if(sideAdd) sideAdd.style.display = 'none';
+            }
+
+            // 3. Load dashboard data (from localStorage)
             loadDashboardData();
 
             // 3. Add a real logout function to the "Logout" link
@@ -680,15 +688,7 @@
         });
 
         // --- *** NEW: ANALYTICS BUTTON LOGIC *** ---
-        sidebarAnalytics.addEventListener('click', (e) => {
-            e.preventDefault();
-            // This function shows the OVERALL analytics
-            analyticsModalTitle.textContent = 'Student Performance Analytics';
-            analyticsChartSubtitle.textContent = 'Overall average scores across all subjects, sorted high-to-low.';
-            analyticsReportText.innerHTML = ''; // Clear text
-            generateAnalyticsChart();
-            analyticsModal.style.display = 'flex';
-        });
+        // sidebarAnalytics handler removed; Student Performance button handles analytics view
 
         function generateAnalyticsChart() {
             const ctx = document.getElementById('analyticsChart').getContext('2d');
