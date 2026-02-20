@@ -470,13 +470,11 @@ app.post('/api/create-user', async (req, res) => {
     };
 
     try {
-        // Use the helper which will prefer Supabase and fallback to local JSON
         const result = await upsertUser(record);
-        console.log('Create user: upsert result:', Array.isArray(result) ? JSON.stringify(result[0]) : JSON.stringify(result));
+        console.log('Create user: upsert result:', JSON.stringify(result));
     } catch (err) {
         console.error('Create user error (detailed):', err && err.message ? err.message : err);
-        // In dev return the DB error to help debugging; remove in production
-        return res.json({ success: false, message: 'Failed to create user.', error: err && err.message ? err.message : String(err) });
+        return res.json({ success: false, message: 'Failed to create user. Please try again.', error: err && err.message ? err.message : String(err) });
     }
 
     if (userType === 'teacher') {
