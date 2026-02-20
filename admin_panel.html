@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Admin Panel - Eduwise</title>
+    <link rel="stylesheet" href="teacher_dashboard.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        :root {
+            --admin-primary: #e67e22;
+            /* Professional Orange for Admin */
+        }
+
+        .bg-orange {
+            background-color: var(--admin-primary) !important;
+            color: white;
+        }
+
+        .sidebar-header span {
+            color: var(--admin-primary);
+        }
+
+        .btn-admin {
+            background: var(--admin-primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .status-approved {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="index.html" class="logo-link">
+                    <img src="logo.jpg" alt="Eduwise Logo" class="logo-img">
+                    <span>Eduwise Admin</span>
+                </a>
+            </div>
+            <nav class="sidebar-nav">
+                <h3 class="menu-heading">Management</h3>
+                <ul class="sidebar-menu">
+                    <li class="menu-item active"><a href="admin_panel.html"><i class='bx bxs-dashboard'></i>
+                            Overview</a></li>
+                    <li class="menu-item"><a href="#"><i class='bx bxs-user-check'></i> Approve Teachers</a></li>
+                </ul>
+                <h3 class="menu-heading">Data Views</h3>
+                <ul class="sidebar-menu">
+                    <li class="menu-item"><a href="teacher_dashboard.html"><i class='bx bxs-group'></i> All Students</a>
+                    </li>
+                    <li class="menu-item"><a href="index.html"><i class='bx bxs-home'></i> Back to site</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <div class="main-content-area">
+            <header class="main-header">
+                <div class="main-header-content">
+                    <div class="header-left">
+                        <h1 class="page-title">Administration Panel</h1>
+                    </div>
+                    <div class="header-right">
+                        <span id="adminInfo">Admin: <strong id="adminName">Loading...</strong></span>
+                        <button id="logoutBtn" class="btn-small btn-ghost" style="margin-left:8px">Logout</button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="dashboard-main">
+                <div class="summary-grid">
+                    <div class="summary-card bg-orange">
+                        <div class="summary-icon">👨‍🏫</div>
+                        <div class="summary-details"><span class="summary-value" id="pendingTeachers">0</span><span
+                                class="summary-label">Pending Approvals</span></div>
+                    </div>
+                    <div class="summary-card bg-blue">
+                        <div class="summary-icon">👥</div>
+                        <div class="summary-details"><span class="summary-value" id="totalUsers">0</span><span
+                                class="summary-label">Total Users</span></div>
+                    </div>
+                    <div class="summary-card bg-green">
+                        <div class="summary-icon">🎓</div>
+                        <div class="summary-details"><span class="summary-value" id="totalStudents">0</span><span
+                                class="summary-label">Total Students</span></div>
+                    </div>
+                </div>
+
+                <section class="content-section" style="margin-top: 30px;">
+                    <h2 style="margin-bottom: 20px;">Platform Administration</h2>
+                    <div class="card"
+                        style="padding: 20px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                        <p>Welcome to the Eduwise Admin Panel. From here you can manage teacher registrations and
+                            platform-wide analytics.</p>
+                        <div style="margin-top: 20px; display: flex; gap: 15px;">
+                            <a href="teacher_dashboard.html" class="btn-admin" style="text-decoration: none;">Go to
+                                Teacher Dashboard</a>
+                            <button class="btn-admin" style="background: #34495e;">Platform Settings</button>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const email = localStorage.getItem('userEmail');
+            if (!email) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            document.getElementById('adminName').textContent = email.split('@')[0];
+
+            // Fetch Stats
+            try {
+                const response = await fetch('/api/get-all-students');
+                const data = await response.json();
+                if (data) {
+                    document.getElementById('totalStudents').textContent = data.length || 0;
+                    document.getElementById('totalUsers').textContent = (data.length || 0) + 2; // Rough estimate
+                }
+            } catch (e) {
+                console.error('Failed to fetch stats');
+            }
+
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                localStorage.removeItem('userEmail');
+                localStorage.removeItem('userType');
+                window.location.href = 'login.html';
+            });
+        });
+    </script>
+</body>
+
+</html>

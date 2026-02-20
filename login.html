@@ -202,15 +202,24 @@
                     const data = await response.json();
 
                     if (data.success) {
-                        localStorage.setItem('userEmail', username);
+                        localStorage.setItem('userEmail', username.toLowerCase());
                         localStorage.setItem('userType', data.userType || userType);
-                        alert(data.message);
+
+                        console.log('Login successful, info stored:', { email: username, type: data.userType });
+
                         const cacheBuster = '?v=' + new Date().getTime();
-                        const resolvedType = (data.userType || userType || '').toLowerCase();
-                        if (resolvedType === 'admin') window.location.href = 'admin_panel.html' + cacheBuster;
-                        else if (resolvedType === 'teacher') window.location.href = 'teacher_dashboard.html' + cacheBuster;
-                        else window.location.href = 'student_dashboard.html' + cacheBuster;
+                        const resolvedType = (data.userType || userType || '').toString().toLowerCase();
+
+                        // Handle 'both' as admin for redirection purposes
+                        if (resolvedType === 'admin' || resolvedType === 'both') {
+                            window.location.href = 'admin_panel.html' + cacheBuster;
+                        } else if (resolvedType === 'teacher') {
+                            window.location.href = 'teacher_dashboard.html' + cacheBuster;
+                        } else {
+                            window.location.href = 'student_dashboard.html' + cacheBuster;
+                        }
                     } else {
+                        console.warn('Login failed:', data.message);
                         loginError.textContent = data.message;
                     }
                 } catch (error) {
