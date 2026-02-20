@@ -190,8 +190,8 @@
     let students = [];
     let analyticsChartInstance = null;
 
-    // API base: can be set by `api-config.js` (window.__API_BASE__), otherwise fallback to localhost for dev
-    const API_BASE = (window.__API_BASE__ && window.__API_BASE__.trim()) ? window.__API_BASE__.trim() : 'http://localhost:3000';
+    // API base: use relative paths by default
+    const API_BASE = '';
     function isServerMode(){ return localStorage.getItem('useServer') === 'true'; }
 
     async function fetchStudentsFromServer(){
