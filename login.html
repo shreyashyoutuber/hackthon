@@ -1,20 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Eduwise</title>
     <link rel="stylesheet" href="login.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
 </head>
+
 <body>
 
     <a href="index.html" class="logo-badge">
         <img src="logo.jpg" alt="Eduwise Logo">
         <span>Eduwise</span>
     </a>
+
     <div class="container" id="container">
+
+        <!-- ===== SIGN IN FORM ===== -->
         <div class="form-container sign-in-container">
             <form id="loginForm">
                 <h1>Sign In</h1>
@@ -24,10 +30,11 @@
                     <a href="#" class="social"><i class='bx bxl-linkedin'></i></a>
                 </div>
                 <span>or use your email account</span>
-                
+
                 <div class="user-type-options">
-                    <label><input type="radio" name="user-type" value="student" checked> Student</label>
-                    <label style="margin-left: 15px;"><input type="radio" name="user-type" value="teacher"> Teacher</label>
+                    <label><input type="radio" name="user-type" value="student" checked><span>Student</span></label>
+                    <label><input type="radio" name="user-type" value="teacher"><span>Teacher</span></label>
+                    <label><input type="radio" name="user-type" value="admin"><span>Admin</span></label>
                 </div>
 
                 <div class="infield">
@@ -41,12 +48,15 @@
                 <a href="forgot-password.html" class="forgot">Forgot your password?</a>
                 <p class="error-message" id="loginError"></p>
                 <button type="submit">Sign In</button>
-                
+
                 <p class="mobile-text">Don't have an account? <a href="#" id="mobileSignUpBtn">Sign Up</a></p>
             </form>
         </div>
 
+        <!-- ===== SIGN UP FORM ===== -->
         <div class="form-container sign-up-container">
+
+            <!-- Step 1: Details -->
             <form id="signupFormStep1" class="signup-step">
                 <h1>Create Account</h1>
                 <div class="social-container">
@@ -54,10 +64,11 @@
                     <a href="#" class="social"><i class='bx bxl-facebook'></i></a>
                 </div>
                 <span>or use your email for registration</span>
-                
+
                 <div class="user-type-options">
-                    <label><input type="radio" name="signup-user-type" value="student" checked> Student</label>
-                    <label style="margin-left: 15px;"><input type="radio" name="signup-user-type" value="teacher"> Teacher</label>
+                    <label><input type="radio" name="signup-user-type" value="student"
+                            checked><span>Student</span></label>
+                    <label><input type="radio" name="signup-user-type" value="teacher"><span>Teacher</span></label>
                 </div>
 
                 <div class="infield">
@@ -73,15 +84,16 @@
                     <i class='bx bxs-envelope'></i>
                 </div>
                 <div class="infield">
-                    <input type="tel" id="phoneNumber" placeholder="Phone Num" required />
+                    <input type="tel" id="phoneNumber" placeholder="Phone Number" required />
                     <i class='bx bxs-phone'></i>
                 </div>
                 <p class="error-message" id="signupErrorStep1"></p>
                 <button type="submit">Next</button>
-                
+
                 <p class="mobile-text">Already have an account? <a href="#" id="mobileSignInBtn">Sign In</a></p>
             </form>
 
+            <!-- Step 2: Verify Email -->
             <form id="signupFormStep2" class="signup-step" style="display: none;">
                 <h1>Verify Email</h1>
                 <span>Enter the 6-digit code sent to your email.</span>
@@ -93,6 +105,7 @@
                 <button type="submit">Verify</button>
             </form>
 
+            <!-- Step 3: Set Password -->
             <form id="signupFormStep3" class="signup-step" style="display: none;">
                 <h1>Set Password</h1>
                 <span>Secure your account.</span>
@@ -107,9 +120,12 @@
                 <p class="error-message" id="signupErrorStep3"></p>
                 <button type="submit">Finish</button>
             </form>
-             <div id="successMessage" style="display: none; text-align: center; padding: 20px; color: var(--primary-color);"></div>
+
+            <div id="successMessage" style="display: none; text-align: center; padding: 20px; color: var(--primary);">
+            </div>
         </div>
 
+        <!-- ===== OVERLAY PANEL ===== -->
         <div class="overlay-container">
             <div class="overlay">
                 <div class="overlay-panel overlay-left">
@@ -127,7 +143,7 @@
     </div>
 
     <script>
-        // --- SLIDING ANIMATION JS ---
+        // --- SLIDING ANIMATION ---
         const container = document.getElementById('container');
         const signUpBtn = document.getElementById('signUpBtn');
         const signInBtn = document.getElementById('signInBtn');
@@ -135,21 +151,32 @@
         const mobileSignInBtn = document.getElementById('mobileSignInBtn');
 
         function activateSignUp(e) {
-            if(e) e.preventDefault();
+            if (e) e.preventDefault();
             container.classList.add("right-panel-active");
         }
 
         function activateSignIn(e) {
-            if(e) e.preventDefault();
+            if (e) e.preventDefault();
             container.classList.remove("right-panel-active");
         }
 
-        if(signUpBtn) signUpBtn.addEventListener('click', activateSignUp);
-        if(signInBtn) signInBtn.addEventListener('click', activateSignIn);
-        if(mobileSignUpBtn) mobileSignUpBtn.addEventListener('click', activateSignUp);
-        if(mobileSignInBtn) mobileSignInBtn.addEventListener('click', activateSignIn);
+        if (signUpBtn) signUpBtn.addEventListener('click', activateSignUp);
+        if (signInBtn) signInBtn.addEventListener('click', activateSignIn);
+        if (mobileSignUpBtn) mobileSignUpBtn.addEventListener('click', activateSignUp);
+        if (mobileSignInBtn) mobileSignInBtn.addEventListener('click', activateSignIn);
 
-        // --- YOUR EXISTING LOGIN/SIGNUP JS ---
+        // --- RADIO PILL SELECTOR (JS fallback for older browsers) ---
+        document.querySelectorAll('.user-type-options label').forEach(label => {
+            const radio = label.querySelector('input[type="radio"]');
+            if (radio && radio.checked) label.classList.add('active');
+            label.addEventListener('click', () => {
+                const group = label.closest('.user-type-options').querySelectorAll('label');
+                group.forEach(l => l.classList.remove('active'));
+                label.classList.add('active');
+            });
+        });
+
+        // --- LOGIN / SIGNUP LOGIC ---
         document.addEventListener('DOMContentLoaded', () => {
             let userEmailForSignup = '';
             const step1 = document.getElementById('signupFormStep1');
@@ -158,14 +185,14 @@
             const successMessageDiv = document.getElementById('successMessage');
 
             // --- LOGIN FORM ---
-            document.getElementById('loginForm').addEventListener('submit', async function(event) {
+            document.getElementById('loginForm').addEventListener('submit', async function (event) {
                 event.preventDefault();
                 const username = document.getElementById('username').value.trim();
                 const password = document.getElementById('password').value;
                 const loginError = document.getElementById('loginError');
                 const userType = document.querySelector('input[name="user-type"]:checked').value;
                 loginError.textContent = '';
-                
+
                 try {
                     const response = await fetch('/api/login', {
                         method: 'POST',
@@ -176,10 +203,13 @@
 
                     if (data.success) {
                         localStorage.setItem('userEmail', username);
+                        localStorage.setItem('userType', data.userType || userType);
                         alert(data.message);
                         const cacheBuster = '?v=' + new Date().getTime();
-                        if (userType === 'student') window.location.href = 'student_dashboard.html' + cacheBuster;
-                        else if (userType === 'teacher') window.location.href = 'teacher_dashboard.html' + cacheBuster;
+                        const resolvedType = (data.userType || userType || '').toLowerCase();
+                        if (resolvedType === 'admin') window.location.href = 'admin_panel.html' + cacheBuster;
+                        else if (resolvedType === 'teacher') window.location.href = 'teacher_dashboard.html' + cacheBuster;
+                        else window.location.href = 'student_dashboard.html' + cacheBuster;
                     } else {
                         loginError.textContent = data.message;
                     }
@@ -189,7 +219,7 @@
             });
 
             // --- STEP 1 ---
-            step1.addEventListener('submit', async function(event) {
+            step1.addEventListener('submit', async function (event) {
                 event.preventDefault();
                 const userType = document.querySelector('input[name="signup-user-type"]:checked').value;
                 const fullName = document.getElementById('fullName').value.trim();
@@ -197,22 +227,21 @@
                 const email = document.getElementById('newUsername').value.trim();
                 const phoneNumber = document.getElementById('phoneNumber').value.trim();
                 const errorP = document.getElementById('signupErrorStep1');
-                userEmailForSignup = email; 
+                userEmailForSignup = email;
                 try {
-                    // store the full name temporarily so dashboards can show the name
-                    try { localStorage.setItem('pendingFullName', fullName); } catch(e) { /* ignore */ }
+                    try { localStorage.setItem('pendingFullName', fullName); } catch (e) { /* ignore */ }
                     const response = await fetch('/api/send-verification', {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email, fullName, schoolId, userType, phoneNumber })
                     });
                     const data = await response.json();
-                    if (data.success) { step1.style.display = 'none'; step2.style.display = 'flex'; } 
+                    if (data.success) { step1.style.display = 'none'; step2.style.display = 'flex'; }
                     else { errorP.textContent = data.message; }
                 } catch (error) { errorP.textContent = 'Connection error.'; }
             });
 
             // --- STEP 2 ---
-            step2.addEventListener('submit', async function(event) {
+            step2.addEventListener('submit', async function (event) {
                 event.preventDefault();
                 const code = document.getElementById('verificationCode').value.trim();
                 const errorP = document.getElementById('signupErrorStep2');
@@ -222,13 +251,13 @@
                         body: JSON.stringify({ email: userEmailForSignup, code })
                     });
                     const data = await response.json();
-                    if (data.success) { step2.style.display = 'none'; step3.style.display = 'flex'; } 
+                    if (data.success) { step2.style.display = 'none'; step3.style.display = 'flex'; }
                     else { errorP.textContent = data.message; }
                 } catch (error) { errorP.textContent = 'Connection error.'; }
             });
 
             // --- STEP 3 ---
-            step3.addEventListener('submit', async function(event) {
+            step3.addEventListener('submit', async function (event) {
                 event.preventDefault();
                 const password = document.getElementById('newPassword').value;
                 const confirmPassword = document.getElementById('confirmPassword').value;
@@ -259,4 +288,5 @@
         });
     </script>
 </body>
+
 </html>

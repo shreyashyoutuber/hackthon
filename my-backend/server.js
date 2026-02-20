@@ -170,6 +170,7 @@ app.post('/api/login', (req, res) => {
                 const approved = (typeof user.approved !== 'undefined') ? user.approved : false;
 
                 const normalizedEmail = (username || '').toString().toLowerCase();
+                const isAdmin = storedUserType && storedUserType.toString().toLowerCase() === 'admin';
 
                 const requestedNorm = requestedUserType ? requestedUserType.toString().toLowerCase() : null;
                 let storedTypes = [];
@@ -180,14 +181,20 @@ app.post('/api/login', (req, res) => {
                     storedTypes = ['student', 'teacher'];
                 }
 
-                if (requestedNorm && storedTypes.length && !storedTypes.includes(requestedNorm)) {
-                    if (!ROLE_EXEMPT.includes(normalizedEmail)) {
-                        return res.json({ success: false, message: `This account is registered as '${storedUserType}'. Please use the ${storedUserType} portal.` });
+                // Admins can always login regardless of requested role
+                if (!isAdmin) {
+                    if (requestedNorm && storedTypes.length && !storedTypes.includes(requestedNorm)) {
+                        if (!ROLE_EXEMPT.includes(normalizedEmail)) {
+                            return res.json({ success: false, message: `This account is registered as '${storedUserType}'. Please select '${storedUserType}' to login.` });
+                        }
                     }
-                }
 
-                if (storedUserType === 'teacher' && approved !== true) {
-                    return res.json({ success: false, message: 'Your teacher account is pending admin approval. Please wait for confirmation.' });
+                    // Teachers need approval (unless exempt)
+                    if (storedTypes.includes('teacher') && approved !== true) {
+                        if (!ROLE_EXEMPT.includes(normalizedEmail)) {
+                            return res.json({ success: false, message: 'Your teacher account is pending admin approval. Please wait for confirmation.' });
+                        }
+                    }
                 }
 
                 return res.json({ success: true, message: 'Login successful!', userType: storedUserType });
