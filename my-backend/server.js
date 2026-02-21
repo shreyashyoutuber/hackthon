@@ -15,7 +15,7 @@ const path = require('path');
 const app = express();
 
 // --- CONFIGURATION ---
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'shreyashmahagaon@gmail.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '';
 const WEBSITE_URL = process.env.WEBSITE_URL || 'https://eduwise1.vercel.app'; // default to your frontend domain
 
 // Allowed origins for CORS (comma separated list). Include localhost for local testing.
@@ -29,11 +29,10 @@ const ROLE_EXEMPT = (() => {
         const fromEnv = raw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
         const set = new Set(fromEnv);
         if (ADMIN_EMAIL) set.add(ADMIN_EMAIL.toLowerCase());
-        set.add('shreyashmahagaon@gmail.com');
         set.add('admin@test.com');
         return Array.from(set);
     } catch (e) {
-        return [(ADMIN_EMAIL || '').toLowerCase(), 'shreyashmahagaon@gmail.com'].filter(Boolean);
+        return [(ADMIN_EMAIL || '').toLowerCase()].filter(Boolean);
     }
 })();
 

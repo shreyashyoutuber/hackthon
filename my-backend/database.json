@@ -15,24 +15,32 @@
     "school_id": "2400030189",
     "phone_number": "0987654321",
     "grades": {
-      "math": { "score": "88", "grade": "B+" },
-      "science": { "score": "92", "grade": "A" },
-      "history": { "score": "85", "grade": "B" },
-      "english": { "score": "78", "grade": "C+" },
-      "programming": { "score": "70", "grade": "C-" },
-      "physics": { "score": "65", "grade": "D+" }
+      "math": {
+        "score": "88",
+        "grade": "B+"
+      },
+      "science": {
+        "score": "92",
+        "grade": "A"
+      },
+      "history": {
+        "score": "85",
+        "grade": "B"
+      },
+      "english": {
+        "score": "78",
+        "grade": "C+"
+      },
+      "programming": {
+        "score": "70",
+        "grade": "C-"
+      },
+      "physics": {
+        "score": "65",
+        "grade": "D+"
+      }
     },
     "interview_report": "Needs to improve on core programming concepts.",
-    "approved": true
-  },
-  "shreyashmahagaon@gmail.com": {
-    "password": "Shreyash@88",
-    "full_name": "Shreyash Mahagaon",
-    "user_type": "both",
-    "school_id": "2400030189",
-    "phone_number": "06360612006",
-    "grades": { "os": { "score": "88", "grade": "B" }, "programming": { "score": "85", "grade": "B" } },
-    "interview_report": "Solid understanding of OS and programming basics.",
     "approved": true
   },
   "pruthvimahagaon@gmail.com": {
@@ -41,7 +49,20 @@
     "user_type": "student",
     "school_id": "200",
     "phone_number": "6360612005",
-    "grades": { "ios": { "score": "88", "grade": "A+" }, "c": { "score": "90", "grade": "A" }, "programming": { "score": "90", "grade": "A" } },
+    "grades": {
+      "ios": {
+        "score": "88",
+        "grade": "A+"
+      },
+      "c": {
+        "score": "90",
+        "grade": "A"
+      },
+      "programming": {
+        "score": "90",
+        "grade": "A"
+      }
+    },
     "interview_report": "Consistent high performance.",
     "approved": true
   },
@@ -51,7 +72,16 @@
     "user_type": "student",
     "school_id": "DS-001",
     "phone_number": "9990001111",
-    "grades": { "math": { "score": "91", "grade": "A" }, "programming": { "score": "87", "grade": "B+" } },
+    "grades": {
+      "math": {
+        "score": "91",
+        "grade": "A"
+      },
+      "programming": {
+        "score": "87",
+        "grade": "B+"
+      }
+    },
     "interview_report": "Strong candidate for technical roles.",
     "approved": true
   },
@@ -61,7 +91,16 @@
     "user_type": "student",
     "school_id": "DS-002",
     "phone_number": "9990002222",
-    "grades": { "math": { "score": "72", "grade": "C" }, "programming": { "score": "68", "grade": "D+" } },
+    "grades": {
+      "math": {
+        "score": "72",
+        "grade": "C"
+      },
+      "programming": {
+        "score": "68",
+        "grade": "D+"
+      }
+    },
     "interview_report": "Needs improvement in programming fundamentals.",
     "approved": true
   }
