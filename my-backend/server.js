@@ -121,7 +121,7 @@ const transporter = nodemailer.createTransport({
     port: 587,
     secure: false,
     auth: {
-        user: 'shreyashmahagaon@gmail.com',
+        user: process.env.MAIL_USER || '',
         // --- FIX 1: SECURITY (Password from Vercel) ---
         pass: process.env.MAIL_PASSWORD
     }

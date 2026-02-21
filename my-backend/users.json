@@ -11,73 +11,7 @@
             "grades": null,
             "interviewreport": "",
             "approved": true,
-            "user_type": null
-        },
-        {
-            "email": "2400030189@kluniversity.in",
-            "password": "12345",
-            "fullname": "Rahul Sharma",
-            "usertype": "student",
-            "schoolid": "2400030189",
-            "phonenumber": "0987654321",
-            "grades": {
-                "game": {
-                    "grade": "A",
-                    "score": "90"
-                },
-                "math": {
-                    "grade": "B+",
-                    "score": "88%"
-                },
-                "english": {
-                    "grade": "C+",
-                    "score": "78%"
-                },
-                "history": {
-                    "grade": "B",
-                    "score": "85%"
-                },
-                "physics": {
-                    "grade": "D+",
-                    "score": "65%"
-                },
-                "science": {
-                    "grade": "A",
-                    "score": "92%"
-                },
-                "programming": {
-                    "grade": "C-",
-                    "score": "70%"
-                }
-            },
-            "interviewreport": "Needs to improve on core programming concepts.",
-            "approved": false,
-            "user_type": null
-        },
-        {
-            "email": "pruthvimahagaon@gmail.com",
-            "password": "12345678",
-            "fullname": "pruthvi",
-            "usertype": "student",
-            "schoolid": "200",
-            "phonenumber": "6360612005",
-            "grades": {
-                "c": {
-                    "grade": "P",
-                    "score": "90%"
-                },
-                "ios": {
-                    "grade": "A+",
-                    "score": "88%"
-                },
-                "programming": {
-                    "grade": "A",
-                    "score": "90%"
-                }
-            },
-            "interviewreport": "good best done keep it up",
-            "approved": false,
-            "user_type": null
+            "user_type": "both"
         }
     ]
 }

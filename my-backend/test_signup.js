@@ -5,7 +5,7 @@
     let r = await fetch(base + '/api/send-verification', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'test.user@example.com', fullName: 'Test User', userType: 'student', skipEmail: true })
+      body: JSON.stringify({ email: 'generic-test@eduwise.com', fullName: 'Test User', userType: 'student', skipEmail: true })
     });
     let j = await r.json();
     console.log('send-verification response:', j);
@@ -16,7 +16,7 @@
     r = await fetch(base + '/api/verify-code', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'test.user@example.com', code })
+      body: JSON.stringify({ email: 'generic-test@eduwise.com', code })
     });
     j = await r.json();
     console.log('verify-code response:', j);
@@ -25,7 +25,7 @@
     r = await fetch(base + '/api/create-user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'test.user@example.com', password: 'Testing123' })
+      body: JSON.stringify({ email: 'generic-test@eduwise.com', password: 'Testing123' })
     });
     j = await r.json();
     console.log('create-user response:', j);
